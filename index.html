@@ -1,0 +1,2645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Free PDF editor in your browser: edit text, sign, stamp, merge, split, compress PDFs and resize photos or signatures. Files never leave your device.">
+<meta name="theme-color" content="#f6f5fb">
+<title>PDFSathi: edit, sign, merge and shrink PDFs free</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238b5cf6%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%235b21b6%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%229%22%20fill%3D%22url%28%23g%29%22/%3E%3Cpath%20d%3D%22M10%206.5h8.2L23%2011.3V25a1.2%201.2%200%200%201-1.2%201.2H10A1.2%201.2%200%200%201%208.8%2025V7.7A1.2%201.2%200%200%201%2010%206.5z%22%20fill%3D%22%23fff%22/%3E%3Cpath%20d%3D%22M18.2%206.5v4.8H23%22%20fill%3D%22%23ddd6fe%22/%3E%3Cpath%20d%3D%22M12.4%2018.6l2.5%202.5%205-5.3%22%20stroke%3D%22%236d28d9%22%20stroke-width%3D%222.2%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=Homemade+Apple&family=Dancing+Script:wght@400;700&family=Shadows+Into+Light&family=Great+Vibes&family=Allura&family=Sacramento&family=Satisfy&family=Yellowtail&family=Reenie+Beanie&family=Hind:wght@600;700&family=Montserrat:wght@800&family=Playfair+Display:wght@800&family=Special+Elite&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+  :root { --bg:#f5f3ff; --card:#fff; --line:#e4defa; --ink:#1e1b4b; --muted:#6b7280; --p:#6d28d9; --p-d:#5b21b6; --p-l:#ede9fe; --ok:#16a34a; --warn:#f59e0b; --red:#dc2626; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  .hidden { display:none !important; }
+  button { font-family:inherit; }
+  .btn { background:var(--p); color:#fff; border:0; padding:8px 14px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .btn:hover { background:var(--p-d); }
+  .btn:disabled { background:#a5a3b8; cursor:not-allowed; }
+  .btn.soft { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  .btn.soft:hover { background:var(--p-l); }
+  .btn.soft.active { background:var(--warn); border-color:var(--warn); color:#111; }
+  .btn.green { background:var(--ok); } .btn.green:hover { background:#15803d; }
+  .btn.red { background:var(--red); } .btn.red:hover { background:#b91c1c; }
+  label.btn input { display:none; }
+
+  /* sticky top */
+  .sticky { position:sticky; top:0; z-index:50; background:rgba(245,243,255,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .topbar { display:flex; align-items:center; gap:12px; padding:10px 20px; }
+  .brand { font-size:22px; font-weight:800; letter-spacing:-.5px; cursor:pointer; text-decoration:none; color:var(--ink); }
+  .brand b { color:var(--p); }
+  #status { margin-left:auto; font-size:12px; color:var(--muted); }
+  #toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 20px 10px; border-top:1px solid var(--line); background:#fff; }
+  .ctl { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); }
+  .ctl input[type=number] { width:56px; padding:5px; border-radius:8px; border:1px solid var(--line); }
+  .ctl input[type=color] { width:30px; height:28px; border:1px solid var(--line); border-radius:6px; padding:1px; background:#fff; }
+  .ctl select { padding:5px; border-radius:8px; border:1px solid var(--line); font-size:12px; max-width:170px; background:#fff; }
+  .sep { width:1px; height:24px; background:var(--line); margin:0 4px; }
+
+  /* home */
+  .hero { max-width:900px; margin:0 auto; padding:56px 20px 20px; text-align:center; }
+  .hero h1 { font-size:clamp(32px,6vw,56px); line-height:1.08; margin:0 0 14px; letter-spacing:-1.5px; }
+  .hero h1 span { color:var(--p); }
+  .hero p { font-size:17px; color:var(--muted); max-width:620px; margin:0 auto 18px; line-height:1.55; }
+  .badges { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:26px; }
+  .badge { background:#fff; border:1px solid var(--line); border-radius:999px; padding:6px 14px; font-size:13px; font-weight:600; color:var(--p-d); }
+  #drop { background:#fff; border:2px dashed #b9a7f5; border-radius:22px; padding:44px 20px; cursor:pointer; transition:.15s; }
+  #drop:hover, #drop.over { background:var(--p-l); border-color:var(--p); transform:translateY(-1px); }
+  #drop .big { font-size:44px; } #drop b { font-size:19px; display:block; margin:8px 0 4px; }
+  #drop small { color:var(--muted); font-size:13px; }
+  .features { max-width:1000px; margin:34px auto 0; padding:0 20px 20px; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+  .fc { background:#fff; border:1px solid var(--line); border-radius:16px; padding:18px; cursor:pointer; text-align:left; transition:.15s; }
+  .fc:hover { border-color:var(--p); box-shadow:0 8px 24px rgba(109,40,217,.12); transform:translateY(-2px); }
+  .fc .ic { font-size:26px; } .fc h3 { margin:8px 0 4px; font-size:16px; } .fc p { margin:0; color:var(--muted); font-size:13px; line-height:1.5; }
+  footer { text-align:center; color:var(--muted); font-size:12px; padding:30px 20px 40px; }
+
+  /* editor */
+  #pages { padding:20px 10px 60px; display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .page { position:relative; background:#fff; box-shadow:0 2px 14px rgba(30,27,75,.18); }
+  .page canvas { display:block; }
+  .page.addmode { cursor:crosshair; } .page.placemode { cursor:copy; }
+  .page.addmode .t, .page.placemode .t { pointer-events:none; }
+  .t { position:absolute; white-space:pre; line-height:1; color:transparent; outline:none; cursor:text; border-radius:2px; padding:0; margin:0; }
+  .t:hover { outline:1px dashed var(--p); background:rgba(109,40,217,.10); }
+  .t:focus { outline:2px solid var(--p); background:rgba(255,255,255,.95) !important; color:#000 !important; }
+  .t.mod { outline:1px solid var(--warn); }
+  .t.new { color:#000; outline:1px dashed var(--ok); background:transparent; min-width:20px; line-height:1.25; }
+  .pn { position:absolute; top:6px; right:-2px; transform:translateX(100%); font-size:12px; color:var(--muted); }
+  .img-item { position:absolute; outline:1px dashed var(--p); cursor:move; user-select:none; touch-action:none; }
+  .img-item img { width:100%; height:100%; display:block; pointer-events:none; }
+  .img-item .rs { position:absolute; right:-7px; bottom:-7px; width:14px; height:14px; background:var(--p); border-radius:50%; cursor:nwse-resize; }
+  .img-item .del { position:absolute; right:-9px; top:-11px; width:20px; height:20px; background:var(--red); color:#fff; border-radius:50%; font-size:14px; line-height:20px; text-align:center; cursor:pointer; }
+
+  .loading { position:fixed; inset:0; background:rgba(30,27,75,.5); display:none; align-items:center; justify-content:center; color:#fff; font-size:20px; z-index:120; text-align:center; padding:20px; }
+  .loading.show { display:flex; }
+  .toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 18px; border-radius:12px; font-size:14px; z-index:130; opacity:0; pointer-events:none; transition:.25s; max-width:90vw; text-align:center; }
+  .toast.show { opacity:1; }
+
+  /* modals */
+  .modal { position:fixed; inset:0; background:rgba(30,27,75,.55); display:none; align-items:center; justify-content:center; z-index:90; padding:12px; }
+  .modal.show { display:flex; }
+  .box { background:#fff; border-radius:18px; padding:20px 22px; width:min(660px,100%); max-height:92vh; overflow:auto; box-shadow:0 20px 50px rgba(0,0,0,.35); }
+  .box.wide { width:min(900px,100%); }
+  .box h2 { margin:0 0 12px; font-size:20px; }
+  .box .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+  .box input[type=text], .box input[type=number], .box select, .box textarea { padding:8px; border:1px solid var(--line); border-radius:8px; font-size:14px; font-family:inherit; }
+  .box textarea { width:100%; min-height:140px; font-size:15px; }
+  .box .foot { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .box hr { border:0; border-top:1px solid var(--line); margin:14px 0; }
+  .box label.f { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); }
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .tabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .tabs button, .shapes button { background:var(--p-l); color:var(--ink); border:1px solid transparent; padding:7px 12px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; }
+  .tabs button.active, .shapes button.active { background:var(--p); color:#fff; }
+  .shapes { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 10px; }
+  canvas.pad { width:100%; aspect-ratio:5/2; height:auto; border:2px dashed #b9a7f5; border-radius:12px; background:#fff; touch-action:none; cursor:crosshair; }
+  .gallery { display:flex; flex-wrap:wrap; gap:10px; margin:8px 0; min-height:20px; }
+  .gallery .g { border:2px solid var(--line); border-radius:10px; padding:4px; background:#fafafa; cursor:pointer; position:relative; }
+  .gallery .g:hover { border-color:var(--p); }
+  .gallery .g img { height:56px; max-width:180px; object-fit:contain; display:block; }
+  .gallery .g .x { position:absolute; top:-8px; right:-8px; background:var(--red); color:#fff; width:18px; height:18px; border-radius:50%; font-size:12px; text-align:center; line-height:18px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; }
+  .chips button { padding:4px 10px; font-size:12px; background:var(--p-l); color:var(--ink); border:0; border-radius:999px; cursor:pointer; font-weight:600; }
+  .hint-s { font-size:12px; color:var(--muted); }
+  .prev { max-width:100%; max-height:170px; border:1px solid var(--line); border-radius:10px; background:repeating-conic-gradient(#f3f4f6 0 25%,#fff 0 50%) 0 0/16px 16px; }
+  .fontgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:8px; margin:8px 0; }
+  .fontgrid .fcard { border:2px solid var(--line); border-radius:12px; padding:8px 10px; cursor:pointer; background:#fff; overflow:hidden; white-space:nowrap; }
+  .fontgrid .fcard small { display:block; font:11px system-ui; color:var(--muted); }
+  .fontgrid .fcard .pv { font-size:30px; line-height:1.3; overflow:hidden; text-overflow:ellipsis; }
+  .fontgrid .fcard.sel { border-color:var(--p); background:var(--p-l); }
+  /* merge grid */
+  .mgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; margin:10px 0; min-height:60px; }
+  .mp { position:relative; background:#fff; border:2px solid var(--line); border-radius:10px; padding:6px; cursor:grab; text-align:center; }
+  .mp.over { border-color:var(--p); background:var(--p-l); } .mp.drag { opacity:.4; }
+  .mp .th { height:130px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .mp img { max-width:100%; max-height:100%; transition:transform .2s; pointer-events:none; }
+  .mp .num { font-size:11px; color:var(--muted); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mp .acts { position:absolute; top:4px; right:4px; display:flex; gap:3px; }
+  .mp .acts button { border:0; width:22px; height:22px; border-radius:50%; cursor:pointer; font-size:12px; line-height:22px; padding:0; background:var(--p); color:#fff; }
+  .mp .acts button.d { background:var(--red); }
+
+  /* ---- layering, marks, tint ---- */
+  .page { isolation:isolate; }
+  .t { z-index:2; }
+  .t.new { z-index:4; }
+  .page.toolmode { cursor:crosshair; touch-action:none; } .page.toolmode .t { pointer-events:none; }
+  .tint { position:absolute; inset:0; z-index:3; pointer-events:none; mix-blend-mode:multiply; }
+  .mark { position:absolute; z-index:1; }
+  .mark.hl { mix-blend-mode:multiply; }
+  .mark.drawing { outline:1px dashed var(--p); }
+  .mark.erase.drawing { background:rgba(255,255,255,.75); }
+  .mark .x { position:absolute; right:-9px; top:-11px; width:18px; height:18px; background:var(--red); color:#fff; border-radius:50%; font-size:13px; line-height:18px; text-align:center; cursor:pointer; opacity:.35; }
+  .mark:hover .x, .mark .x:hover { opacity:1; }
+  /* rotate handle + buttons on stamps / signatures / images */
+  .img-item { z-index:5; transform-origin:50% 50%; }
+  .img-item .rot { position:absolute; left:50%; top:-32px; width:20px; height:20px; margin-left:-10px; background:#fff; border:2px solid var(--p); border-radius:50%; cursor:grab; text-align:center; font-size:12px; line-height:16px; color:var(--p); }
+  .img-item .rot::after { content:""; position:absolute; left:50%; top:100%; width:1px; height:10px; background:var(--p); }
+  .img-item .rb { position:absolute; left:50%; bottom:-32px; transform:translateX(-50%); display:flex; gap:4px; }
+  .img-item .rb button { width:22px; height:22px; border:0; border-radius:50%; background:var(--p); color:#fff; cursor:pointer; padding:0; font-size:13px; line-height:22px; }
+  .fontgrid { max-height:340px; overflow:auto; }
+  .swatches button { border:1px solid var(--line); }
+  /* ---- rent templates ---- */
+  .box input[type=date], .box input[type=month] { padding:8px; border:1px solid var(--line); border-radius:8px; font-size:14px; font-family:inherit; width:100%; }
+  .box label.f input, .box label.f select, .box label.f textarea { width:100%; }
+  .box label.f textarea { min-height:64px; font-size:14px; }
+  .box h3.sec { margin:16px 0 4px; font-size:14px; color:var(--p-d); }
+  .box .span2 { grid-column:1 / -1; }
+  .box .legal { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:8px 12px; font-size:12px; color:#78350f; line-height:1.5; margin:8px 0; }
+  /* ================= Redesign ================= */
+  :root { --bg:#f6f5fb; --line:#e6e2f5; --ink:#1b1840; --muted:#5f5c7d; --p:#6d28d9; --p-d:#5b21b6; --p-l:#f0ebff;
+    --shadow:0 1px 2px rgba(27,24,64,.06), 0 8px 24px rgba(27,24,64,.07); }
+  html { scroll-behavior:smooth; scroll-padding-top:90px; }
+  body { font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing:antialiased; line-height:1.5; }
+  body.editing { background:#e9e7f4; }
+  .ico { flex:none; display:block; }
+  :focus-visible { outline:3px solid #a78bfa; outline-offset:2px; }
+
+  /* buttons */
+  .btn { border-radius:11px; padding:9px 15px; font-weight:600; font-size:13.5px; transition:background .15s, box-shadow .15s, transform .1s, border-color .15s; }
+  .btn:not(.soft):not(.green):not(.red) { background:linear-gradient(180deg,#7c3aed,#6d28d9); box-shadow:0 2px 8px rgba(109,40,217,.28); }
+  .btn:active { transform:translateY(1px); }
+  .btn.soft { box-shadow:0 1px 1px rgba(27,24,64,.04); }
+  .btn.soft:hover { border-color:#c9b8f7; }
+  .btn.green { background:linear-gradient(180deg,#22c55e,#16a34a); box-shadow:0 2px 8px rgba(22,163,74,.28); }
+  .btn.big { padding:13px 26px; font-size:16px; border-radius:14px; }
+  .btn:disabled { box-shadow:none; }
+
+  /* header */
+  .sticky { background:rgba(255,255,255,.88); backdrop-filter:blur(12px); border-bottom:1px solid var(--line); }
+  .topbar { padding:10px 24px; gap:18px; }
+  .brand { display:flex; align-items:center; gap:10px; font-size:21px; font-weight:800; letter-spacing:-.5px; }
+  .logo { width:34px; height:34px; display:block; filter:drop-shadow(0 3px 6px rgba(109,40,217,.35)); }
+  .logo svg { width:100%; height:100%; display:block; }
+  .topnav { display:flex; gap:4px; margin-left:12px; }
+  .topnav a { color:var(--muted); text-decoration:none; font-size:14px; font-weight:600; padding:7px 12px; border-radius:9px; }
+  .topnav a:hover { background:var(--p-l); color:var(--p-d); }
+  body.editing .topnav { display:none; }
+  #status { background:var(--p-l); color:var(--p-d); font-weight:600; padding:4px 12px; border-radius:999px; font-size:12.5px; }
+  #status:empty { display:none; } #status { white-space:nowrap; }
+
+  /* ribbon toolbar */
+  #toolbar { display:block; padding:0; background:#fff; border-top:1px solid var(--line); }
+  .rtabs { display:flex; align-items:center; gap:2px; padding:6px 20px 0; overflow-x:auto; scrollbar-width:none; border-bottom:1px solid var(--line); }
+  .rtabs::-webkit-scrollbar { display:none; }
+  .rtab { border:0; background:none; color:var(--muted); font-weight:600; font-size:13.5px; padding:9px 14px; border-radius:10px 10px 0 0; cursor:pointer; display:inline-flex; align-items:center; gap:7px; border-bottom:3px solid transparent; white-space:nowrap; margin-bottom:-1px; }
+  .rtab:hover { color:var(--p-d); background:var(--p-l); }
+  .rtab.active { color:var(--p-d); border-bottom-color:var(--p); background:var(--p-l); }
+  .rtabs .zoom { margin-left:auto; padding:0 0 4px 12px; white-space:nowrap; }
+  .zoom .btn { padding:3px 10px; font-size:16px; line-height:1.2; }
+  #zoomVal { min-width:42px; text-align:center; font-weight:700; color:var(--ink); }
+  .rpanel { display:none; flex-wrap:wrap; align-items:center; gap:8px 10px; padding:12px 20px 10px; }
+  .rpanel.active { display:flex; }
+  .ctl { font-weight:600; }
+  .ctl input[type=number], .ctl select { border:1px solid var(--line); background:#fff; }
+  .ctl input[type=color] { width:34px; height:32px; border-radius:8px; cursor:pointer; }
+  .tip { padding:0 20px 10px; font-size:12.5px; color:var(--muted); }
+  .tip::before { content:"Tip: "; font-weight:700; color:var(--p-d); }
+
+  /* hero */
+  #home { background:radial-gradient(60% 55% at 12% 0%, #e8ddff 0, transparent 62%), radial-gradient(45% 50% at 92% 6%, #ffe3f0 0, transparent 60%), var(--bg); }
+  .hero { max-width:none; padding:60px 20px 8px; }
+  .hero-in { max-width:900px; margin:0 auto; text-align:center; }
+  .pill { display:inline-flex; align-items:center; gap:7px; background:#fff; border:1px solid var(--line); color:var(--p-d); font-weight:600; font-size:13px; padding:6px 14px; border-radius:999px; box-shadow:var(--shadow); margin-bottom:20px; }
+  .hero h1 { text-wrap:balance; font-size:clamp(32px,5.6vw,56px); line-height:1.05; letter-spacing:-2px; margin:0 0 16px; font-weight:800; }
+  .hero h1 span { background:linear-gradient(90deg,#7c3aed,#db2777); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hero p { font-size:18px; color:var(--muted); max-width:600px; margin:0 auto 28px; }
+  #drop { background:rgba(255,255,255,.92); border:2px dashed #b9a7f5; border-radius:24px; padding:34px 20px 28px; box-shadow:var(--shadow); display:flex; flex-direction:column; align-items:center; gap:6px; }
+  #drop:hover, #drop.over { background:#fff; border-color:var(--p); transform:translateY(-2px); box-shadow:0 14px 40px rgba(109,40,217,.18); }
+  #drop.over { background:var(--p-l); }
+  .drop-ic { width:68px; height:68px; border-radius:20px; background:linear-gradient(135deg,#ede9fe,#fce7f3); color:var(--p); display:grid; place-items:center; margin-bottom:4px; }
+  #drop b { font-size:22px; margin:0; letter-spacing:-.3px; }
+  #drop .or { color:var(--muted); font-size:13px; }
+  #drop small { color:var(--muted); font-size:13px; margin-top:6px; max-width:420px; }
+  .trust { display:flex; flex-wrap:wrap; gap:8px 22px; justify-content:center; margin-top:22px; color:var(--muted); font-size:13.5px; font-weight:600; }
+  .trust span { display:inline-flex; align-items:center; gap:6px; }
+  .trust svg { color:#16a34a; }
+
+  /* tools */
+  .tools { max-width:1080px; margin:46px auto 0; padding:0 20px; }
+  .sec-head { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px; margin-bottom:8px; }
+  .sec-head h2, .how h2 { margin:0; font-size:28px; letter-spacing:-.8px; }
+  .sec-head p { margin:4px 0 0; color:var(--muted); font-size:14.5px; }
+  .search { display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:0 12px; min-width:min(100%,300px); box-shadow:0 1px 2px rgba(27,24,64,.05); color:var(--muted); }
+  .search:focus-within { border-color:var(--p); box-shadow:0 0 0 3px #e4d9ff; }
+  .search input { border:0; outline:0; padding:11px 0; font:inherit; font-size:14px; flex:1; background:none; color:var(--ink); min-width:0; }
+  .tgroup { margin-top:26px; }
+  .tgroup > h3 { margin:0 0 12px; font-size:13px; text-transform:uppercase; letter-spacing:.9px; color:var(--muted); display:flex; align-items:center; gap:10px; }
+  .tgroup > h3::after { content:""; flex:1; height:1px; background:var(--line); }
+  .tgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; }
+  .fc { display:flex; gap:14px; align-items:flex-start; padding:16px; border-radius:18px; background:#fff; border:1px solid var(--line); box-shadow:0 1px 2px rgba(27,24,64,.04); transition:.18s; position:relative; }
+  .fc:hover, .fc:focus-visible { transform:translateY(-3px); border-color:var(--c); box-shadow:0 14px 30px -10px var(--c); }
+  .ftile { width:46px; height:46px; border-radius:14px; background:var(--cl); color:var(--c); display:grid; place-items:center; flex:none; }
+  .fc h3 { margin:1px 0 3px; font-size:15.5px; letter-spacing:-.2px; }
+  .fc p { margin:0; font-size:13px; color:var(--muted); line-height:1.5; }
+  .fc .tag { display:inline-block; margin-top:8px; font-size:11px; font-weight:700; color:var(--c); background:var(--cl); padding:2px 9px; border-radius:999px; }
+  .fc.violet { --c:#6d28d9; --cl:#f0ebff; } .fc.pink { --c:#db2777; --cl:#fdecf5; } .fc.blue { --c:#2563eb; --cl:#e9f1ff; }
+  .fc.green { --c:#059669; --cl:#e5f7ef; } .fc.amber { --c:#d97706; --cl:#fff3dc; }
+  .noresult { text-align:center; color:var(--muted); padding:30px 0; }
+
+  /* how it works */
+  .how { max-width:1080px; margin:64px auto 0; padding:0 20px; }
+  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:18px; }
+  .step { background:#fff; border:1px solid var(--line); border-radius:18px; padding:20px; box-shadow:0 1px 2px rgba(27,24,64,.04); }
+  .step .num { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; font-weight:800; display:grid; place-items:center; margin-bottom:10px; }
+  .step h3 { margin:0 0 4px; font-size:17px; } .step p { margin:0; color:var(--muted); font-size:14px; }
+  footer { margin-top:48px; border-top:1px solid var(--line); background:rgba(255,255,255,.6); }
+
+  /* editor */
+  .page { box-shadow:0 2px 6px rgba(27,24,64,.12), 0 14px 34px rgba(27,24,64,.14); border-radius:2px; }
+  .pn { background:#fff; border:1px solid var(--line); border-radius:999px; padding:1px 8px; font-weight:600; }
+  .loading { flex-direction:column; gap:16px; font-weight:600; backdrop-filter:blur(2px); }
+  .loading::before { content:""; width:44px; height:44px; border-radius:50%; border:4px solid rgba(255,255,255,.3); border-top-color:#fff; animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .toast { border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.25); font-weight:500; }
+
+  /* modals */
+  .modal { backdrop-filter:blur(3px); }
+  .box { position:relative; border-radius:22px; padding:22px 24px 20px; box-shadow:0 30px 80px rgba(27,24,64,.4); }
+  .box h2 { display:flex; align-items:center; gap:12px; font-size:21px; letter-spacing:-.4px; margin:0 40px 14px 0; }
+  .htile { width:38px; height:38px; border-radius:12px; background:var(--p-l); color:var(--p); display:grid; place-items:center; flex:none; }
+  .mx { position:absolute; top:16px; right:16px; width:34px; height:34px; border-radius:10px; border:0; background:#f3f1fb; color:var(--muted); cursor:pointer; display:grid; place-items:center; padding:0; }
+  .mx:hover { background:#e9e4fa; color:var(--ink); }
+  .box .foot { position:sticky; bottom:-20px; margin:16px -24px -20px; padding:14px 24px; background:rgba(255,255,255,.94); backdrop-filter:blur(6px); border-top:1px solid var(--line); border-radius:0 0 22px 22px; }
+  .box h3.sec { font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:var(--p-d); }
+  .box input[type=text], .box input[type=number], .box select, .box textarea, .box input[type=date], .box input[type=month] { border-radius:10px; }
+  .box input:focus, .box select:focus, .box textarea:focus { outline:0; border-color:var(--p); box-shadow:0 0 0 3px #e4d9ff; }
+  .tabs button { display:inline-flex; align-items:center; gap:6px; }
+  .tabs button, .shapes button { border-radius:11px; }
+  .gallery .g, .fontgrid .fcard, .mp { border-radius:14px; }
+
+  @media (max-width:720px) {
+    .topbar { padding:8px 14px; gap:10px; } .topnav { display:none; }
+    .hero { padding-top:36px; } .hero p { font-size:16px; }
+    .rtabs, .rpanel, .tip { padding-left:12px; padding-right:12px; }
+    .box { padding:18px 16px 16px; } .box .foot { margin:14px -16px -16px; padding:12px 16px; }
+    #btnSave { padding:8px 12px; }
+    #status { display:none; } .brand { font-size:19px; }
+  }
+</style>
+
+
+</head>
+<body>
+
+<header class="sticky">
+  <div class="topbar">
+    <a class="brand" id="brand" title="Back to home">
+      <span class="logo"><svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#5b21b6"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M10 6.5h8.2L23 11.3V25a1.2 1.2 0 0 1-1.2 1.2H10A1.2 1.2 0 0 1 8.8 25V7.7A1.2 1.2 0 0 1 10 6.5z" fill="#fff"/><path d="M18.2 6.5v4.8H23" fill="#ddd6fe"/><path d="M12.4 18.6l2.5 2.5 5-5.3" stroke="#6d28d9" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="bt">PDF<b>Sathi</b></span>
+    </a>
+    <nav class="topnav" id="topnav"><a href="#tools">All tools</a><a href="#how">How it works</a></nav>
+    <span id="status"></span>
+    <button class="btn green hidden" id="btnSave" data-ic="download">Download PDF</button>
+  </div>
+
+  <div id="toolbar" class="hidden">
+    <div class="rtabs" role="tablist">
+      <button class="rtab active" data-tab="text" data-ic="type">Text</button>
+      <button class="rtab" data-tab="insert" data-ic="sign">Insert</button>
+      <button class="rtab" data-tab="mark" data-ic="highlight">Mark up</button>
+      <button class="rtab" data-tab="pages" data-ic="grid">Pages</button>
+      <button class="rtab" data-tab="create" data-ic="file">Create</button>
+      <span class="ctl zoom">Zoom
+        <button class="btn soft" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+        <span id="zoomVal">150%</span>
+        <button class="btn soft" id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+      </span>
+    </div>
+
+    <div class="rpanel active" data-panel="text">
+      <button class="btn soft" id="btnAdd" data-ic="plus" title="Click here, then click on the page where you want new text">Add text</button>
+      <span class="ctl">Size <input id="newSize" type="number" value="12" min="6" max="96"></span>
+      <span class="ctl">Colour <input id="newColor" type="color" value="#000000"></span>
+      <span class="ctl">Font <select id="fontSel"></select>
+        <button class="btn soft" id="btnBold" style="padding:4px 10px;font-weight:800" title="Bold">B</button>
+        <button class="btn soft" id="btnItalic" style="padding:4px 10px;font-style:italic" title="Italic">I</button>
+      </span>
+      <span class="sep"></span>
+      <button class="btn soft" id="btnReset" data-ic="undo" disabled title="Restore the selected text to the original">Reset text</button>
+      <button class="btn soft" id="btnHandAll" data-ic="pen" title="Choose a handwriting font and ink colour, then convert text">Handwriting</button>
+    </div>
+
+    <div class="rpanel" data-panel="insert">
+      <button class="btn soft" id="btnSign" data-ic="sign">Signature</button>
+      <button class="btn soft" id="btnStamp" data-ic="stamp">Stamp</button>
+      <label class="btn soft" data-ic="image">Image<input id="imgFile" type="file" accept="image/*"></label>
+      <span class="sep"></span>
+      <button class="btn soft" id="btnOcr" data-ic="camera" title="Read text from a screenshot">Screenshot to text</button>
+      <button class="btn soft" id="btnBill" data-ic="receipt" title="Turn a photo or screenshot of a bill into an editable PDF">Bill to PDF</button>
+    </div>
+
+    <div class="rpanel" data-panel="mark">
+      <button class="btn soft" id="btnHl" data-ic="highlight" title="Highlighter: drag over text, or click a line of text">Highlight</button>
+      <span class="ctl"><input id="hlColor" type="color" value="#ffe14d" title="Highlight colour"></span>
+      <button class="btn soft" id="btnErase" data-ic="eraser" title="Eraser: drag a box over anything, or click a line of text">Erase</button>
+      <span class="sep"></span>
+      <button class="btn soft" id="btnBg" data-ic="palette" title="Tint the pages with a colour">Page colour</button>
+    </div>
+
+    <div class="rpanel" data-panel="pages">
+      <button class="btn soft" id="btnMerge" data-ic="layers">Merge</button>
+      <button class="btn soft" id="btnSplit" data-ic="scissors">Split</button>
+      <button class="btn soft" id="btnOrg" data-ic="grid">Rotate &amp; delete pages</button>
+      <span class="sep"></span>
+      <button class="btn soft" id="btnCp" data-ic="compress" title="Reduce the size of a PDF">Reduce PDF size</button>
+    </div>
+
+    <div class="rpanel" data-panel="create">
+      <button class="btn soft" id="btnRA" data-ic="home" title="Create an editable rent agreement">Rent agreement</button>
+      <button class="btn soft" id="btnRR" data-ic="cash" title="Create monthly rent receipts">Rent receipt</button>
+      <span class="sep"></span>
+      <button class="btn soft" id="btnRz" data-ic="resize" title="Resize or compress an image or signature">Resize image or signature</button>
+    </div>
+
+    <div class="tip" id="tip"></div>
+  </div>
+</header>
+
+<main id="home">
+  <section class="hero">
+    <div class="hero-in">
+      <span class="pill" data-ic="lock" data-sz="14">Private by design: your files never leave this device</span>
+      <h1>Edit PDFs like it's a <span>Google Doc.</span></h1>
+      <p>Change text, sign, stamp, merge, split and shrink PDFs right in your browser. Free, with no sign-up and no watermark.</p>
+      <div id="drop" tabindex="0">
+        <div class="drop-ic" id="dropIc"></div>
+        <b>Drop your PDF here</b>
+        <span class="or">or</span>
+        <button class="btn big" type="button" id="dropBtn">Choose a PDF</button>
+        <small>You can also drop JPG or PNG images, or several files at once to merge them.</small>
+      </div>
+      <input id="homeFiles" type="file" accept="application/pdf,image/png,image/jpeg" multiple hidden>
+      <div class="trust">
+        <span data-ic="check" data-sz="15">Free forever</span>
+        <span data-ic="check" data-sz="15">No sign-up</span>
+        <span data-ic="check" data-sz="15">No watermark</span>
+        <span data-ic="check" data-sz="15">Works in English and Hindi</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tools" id="tools">
+    <div class="sec-head">
+      <div><h2>Everything you can do</h2><p>Pick a tool. If it needs a PDF, we will ask you to choose one first.</p></div>
+      <label class="search"><span id="searchIc"></span><input id="toolSearch" type="search" placeholder="Search: sign, merge, compress…" aria-label="Search tools"></label>
+    </div>
+    <div id="toolGroups"></div>
+    <p class="noresult hidden" id="noTools">No tool matches that. Try "sign", "merge" or "resize".</p>
+  </section>
+
+  <section class="how" id="how">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step"><span class="num">1</span><h3>Choose your file</h3><p>Drop a PDF above, or pick a tool such as Resize Image that works on its own.</p></div>
+      <div class="step"><span class="num">2</span><h3>Make your changes</h3><p>Click text to edit it, add a signature or stamp, highlight, merge or split. Every tool has a short hint.</p></div>
+      <div class="step"><span class="num">3</span><h3>Download</h3><p>Press Download PDF. Everything happens on your device, so nothing is uploaded.</p></div>
+    </div>
+  </section>
+
+  <footer>PDFSathi · Built with PDF.js, pdf-lib and Tesseract.js · Your files stay on your device</footer>
+</main>
+
+<div id="editor" class="hidden"><div id="pages"></div></div>
+<div class="loading" id="loading">Please wait…</div>
+<div class="toast" id="toast"></div>
+
+<!-- OCR -->
+<div class="modal" id="ocrModal"><div class="box">
+  <h2>📷 Screenshot → Text</h2>
+  <div class="row">
+    <label class="btn">🖼️ Choose image<input id="ocrFile" type="file" accept="image/*"></label>
+    <span class="hint-s">or press Ctrl+V to paste a screenshot</span>
+    <select id="ocrLang"><option value="eng">English</option><option value="hin">Hindi</option><option value="hin+eng">Hindi + English</option></select>
+  </div>
+  <div class="row"><img id="ocrPreview" class="prev" style="display:none"></div>
+  <div class="row"><button class="btn" id="ocrRun" disabled>🔍 Read Text</button><span class="hint-s" id="ocrProg"></span></div>
+  <textarea id="ocrText" placeholder="The recognized text appears here. Correct it before placing it."></textarea>
+  <div class="row">Place as <select id="ocrFont"></select> Size <input type="number" id="ocrSize" value="14" min="6" max="96" style="width:64px"> Colour <input type="color" id="ocrColor" value="#000000"></div>
+  <div class="foot">
+    <button class="btn soft" id="ocrCopy">📋 Copy</button>
+    <button class="btn soft" id="ocrClose">Close</button>
+    <button class="btn green" id="ocrPlace">📌 Place on PDF</button>
+  </div>
+</div></div>
+
+<!-- Stamp -->
+<div class="modal" id="stampModal"><div class="box wide">
+  <h2>🔖 Stamp Maker</h2>
+  <b>My stamps</b> <span class="hint-s">(click one to place it)</span>
+  <div class="gallery" id="stampGallery"></div>
+  <hr>
+  <div class="tabs"><button id="stTabText" class="active">Create stamp</button><button id="stTabImg">From image</button></div>
+  <div id="stPaneText">
+    <div class="shapes" id="stShapes">
+      <button data-shape="circle" class="active">Circle</button><button data-shape="seal">Seal</button><button data-shape="cstar">Circle ★</button><button data-shape="oval">Oval</button><button data-shape="box">Box</button><button data-shape="round">Rounded</button>
+    </div>
+    <div class="hint-s" id="stHint" style="display:none">Circle ★: the Main text curves along the top, the Bottom text along the bottom, and a star sits in the centre.</div>
+    <div class="chips" id="stPresets"></div>
+    <div class="grid2">
+      <label class="f">Main text<input type="text" id="stMain" value="APPROVED"></label>
+      <label class="f">Top text<input type="text" id="stTop" placeholder="optional"></label>
+      <label class="f">Bottom text<input type="text" id="stBot" placeholder="optional"></label>
+      <label class="f">Colour<input type="color" id="stColor" value="#1d4ed8" style="width:100%;height:36px"></label>
+      <label class="f">Font<select id="stFont"><option value="sans">Bold sans</option><option value="serif">Classic serif</option><option value="type">Typewriter</option><option value="hind">Hindi (Hind)</option><option value="mukta">Hindi (Mukta)</option><option value="oswald">Condensed (Oswald)</option><option value="bebas">Tall caps (Bebas Neue)</option><option value="cinzel">Classic caps (Cinzel)</option><option value="anton">Heavy (Anton)</option></select></label>
+      <label class="f">Border<select id="stThick"><option value="thin">Thin</option><option value="mid" selected>Mid</option><option value="thick">Thick</option></select></label>
+      <label class="f">Tilt (°)<input type="number" id="stTilt" value="0" min="-45" max="45"></label>
+      <label class="f">Look<select id="stLook"><option value="clean">Clean</option><option value="rubber">Rubber ink</option></select></label>
+    </div>
+    <div class="row"><label><input type="checkbox" id="stDate"> Add today's date</label></div>
+  </div>
+  <div id="stPaneImg" style="display:none">
+    <div class="row"><input type="file" id="stFile" accept="image/*"></div>
+    <div class="row"><label><input type="checkbox" id="stPaper" checked> Remove paper background</label>
+      <label><input type="checkbox" id="stRecolor"> Ink</label> <input type="color" id="stInk" value="#1d4ed8"></div>
+  </div>
+  <div class="row"><img id="stPreview" class="prev"></div>
+  <div class="foot">
+    <button class="btn soft" id="stClose">Close</button>
+    <button class="btn soft" id="stRemember">Save for next time</button>
+    <button class="btn soft" id="stSave">💾 Save to my stamps</button>
+    <button class="btn green" id="stPlace">📌 Place on page</button>
+  </div>
+</div></div>
+
+<!-- Signature -->
+<div class="modal" id="signModal"><div class="box wide">
+  <h2>✒️ Signature Studio</h2>
+  <b>My signatures</b> <span class="hint-s">(click one to place it)</span>
+  <div class="gallery" id="signGallery"></div>
+  <hr>
+  <div class="tabs"><button id="sgTabType" class="active">⌨ Type</button><button id="sgTabDraw">✐ Draw</button><button id="sgTabImg">🖼️ Upload</button></div>
+  <div id="sgPaneType">
+    <div class="row"><input type="text" id="sgText" value="Your Name" style="flex:1;min-width:180px"> Ink <input type="color" id="sgColor2" value="#0b3d91"></div>
+    <div class="fontgrid" id="sgFonts"></div>
+  </div>
+  <div id="sgPaneDraw" style="display:none">
+    <canvas class="pad" id="sgPad" width="800" height="320"></canvas>
+    <div class="row">Ink <input type="color" id="sgColor" value="#0b3d91"> Thickness <input type="number" id="sgWidth" value="4" min="1" max="14" style="width:60px">
+      <button class="btn soft" id="sgUndo">↶ Undo</button><button class="btn soft" id="sgClear">🗑️ Clear</button></div>
+  </div>
+  <div id="sgPaneImg" style="display:none">
+    <div class="row"><input type="file" id="sgFile" accept="image/*"></div>
+    <div class="row"><label><input type="checkbox" id="sgPaper" checked> Remove paper background</label>
+      <label><input type="checkbox" id="sgRecolor"> Ink</label> <input type="color" id="sgInk" value="#0b3d91"></div>
+    <div class="row"><img id="sgPreview" class="prev"></div>
+  </div>
+  <div class="foot">
+    <button class="btn soft" id="sgClose">Close</button>
+    <button class="btn soft" id="sgSave">💾 Save to my signatures</button>
+    <button class="btn green" id="sgPlace">📌 Place on page</button>
+  </div>
+</div></div>
+
+<!-- Merge -->
+<div class="modal" id="mergeModal"><div class="box wide">
+  <h2>📚 Merge &amp; reorder</h2>
+  <div class="row">
+    <label class="btn">➕ Add files<input id="mergeFiles" type="file" accept="application/pdf,image/png,image/jpeg" multiple></label>
+    <button class="btn soft" id="mergeCurrent">📄 Add open PDF (with edits)</button>
+    <button class="btn soft" id="mergeClear">Clear all</button>
+    <span class="hint-s" id="mergeCount"></span>
+  </div>
+  <div class="hint-s">Drag pages into any order. Use ⟳ to rotate and × to remove a page.</div>
+  <div class="mgrid" id="mergeGrid"></div>
+  <div class="foot">
+    <button class="btn soft" id="mergeClose">Close</button>
+    <button class="btn soft" id="mergeEdit" disabled>✏️ Merge &amp; edit</button>
+    <button class="btn green" id="mergeGo" disabled>📚 Merge &amp; download</button>
+  </div>
+</div></div>
+
+<!-- Split -->
+<div class="modal" id="splitModal"><div class="box">
+  <h2>✂️ Split anything</h2>
+  <p class="hint-s" id="splitInfo"></p>
+  <div class="row"><label><input type="radio" name="splitMode" value="ranges" checked> By page range</label></div>
+  <div class="row"><input type="text" id="splitRange" placeholder="e.g. 1-3, 5, 8-10" style="flex:1"></div>
+  <div class="row"><label><input type="checkbox" id="splitCombine"> Combine all ranges into one PDF instead of a ZIP</label></div>
+  <div class="row"><label><input type="radio" name="splitMode" value="every"> Every N pages</label> <input type="number" id="splitEvery" value="2" min="1" style="width:70px"></div>
+  <div class="row"><label><input type="radio" name="splitMode" value="each"> Each page separately</label></div>
+  <div class="hint-s">Several files download together as a ZIP. Your current edits are included.</div>
+  <div class="foot">
+    <button class="btn soft" id="splitClose">Close</button>
+    <button class="btn green" id="splitGo">✂️ Split &amp; download</button>
+  </div>
+</div></div>
+
+<!-- Pages -->
+<div class="modal" id="orgModal"><div class="box">
+  <h2>🗂️ Rotate &amp; delete pages</h2>
+  <p class="hint-s" id="orgInfo"></p>
+  <div class="row"><input type="text" id="orgRange" placeholder="Pages, e.g. 2, 4-6 (empty = all pages)" style="flex:1"></div>
+  <div class="row">
+    <button class="btn" id="orgCW">⟳ Rotate 90° right</button>
+    <button class="btn" id="orgCCW">⟲ Rotate 90° left</button>
+    <button class="btn red" id="orgDel">🗑️ Delete pages</button>
+  </div>
+  <div class="hint-s">These actions apply your current edits to the PDF first, then reload it.</div>
+  <div class="foot"><button class="btn soft" id="orgClose">Close</button></div>
+</div></div>
+
+<!-- Handwriting -->
+<div class="modal" id="hwModal"><div class="box wide">
+  <h2>✍️ Handwriting Studio</h2>
+  <div class="row"><input type="text" id="hwSample" value="Sample handwriting 123 · नमस्ते" style="flex:1;min-width:200px"> Ink colour <input type="color" id="hwColor" value="#1d3f9e"></div>
+  <div class="chips" id="hwInks"></div>
+  <div class="fontgrid" id="hwFonts"></div>
+  <hr>
+  <div class="row"><b>Apply to</b>
+    <label><input type="radio" name="hwScope" value="all" checked> Whole PDF</label>
+    <label><input type="radio" name="hwScope" value="pages"> Pages <input type="text" id="hwPages" placeholder="1, 3-4" style="width:90px"></label>
+    <label><input type="radio" name="hwScope" value="sel"> Selected text only</label>
+  </div>
+  <div class="hint-s">Handwriting is placed as a sharp image, so the PDF looks exactly like this preview. The font and colour also become the toolbar defaults for new text.</div>
+  <div class="foot">
+    <button class="btn soft" id="hwClose">Close</button>
+    <button class="btn soft" id="hwRestore">↩ Restore original fonts</button>
+    <button class="btn green" id="hwApply">✍️ Apply</button>
+  </div>
+</div></div>
+
+<!-- Page colour -->
+<div class="modal" id="bgModal"><div class="box">
+  <h2>🎨 Page colour</h2>
+  <div class="chips swatches" id="bgPresets"></div>
+  <div class="row">Colour <input type="color" id="bgColor" value="#fdf3d6"> Intensity <input type="range" id="bgOp" min="10" max="100" value="100" style="flex:1"> <span id="bgOpV">100%</span></div>
+  <div class="row">Pages <input type="text" id="bgPages" placeholder="empty = all pages, or 1, 3-4" style="flex:1"></div>
+  <div class="hint-s">The colour is blended over the page, so text and images stay readable. Light colours work best; very dark colours also darken the text.</div>
+  <div class="foot">
+    <button class="btn soft" id="bgClose">Close</button>
+    <button class="btn soft" id="bgRemove">Remove colour</button>
+    <button class="btn green" id="bgApply">🎨 Apply</button>
+  </div>
+</div></div>
+
+<!-- Bill -->
+<div class="modal" id="billModal"><div class="box wide">
+  <h2>🧾 Bill / Image → Editable PDF</h2>
+  <div class="row">
+    <label class="btn">🖼️ Add bill image(s)<input id="billFile" type="file" accept="image/*" multiple></label>
+    <span class="hint-s">or press Ctrl+V to paste a photo or screenshot</span>
+  </div>
+  <div class="gallery" id="billThumbs"></div>
+  <div class="row">
+    <label><input type="checkbox" id="billOcr" checked> Make the text editable (OCR)</label>
+    Language <select id="billLang"><option value="eng">English</option><option value="hin">Hindi</option><option value="hin+eng">Hindi + English</option></select>
+  </div>
+  <div class="hint-s">Each image becomes one PDF page. Reading the text takes some time on the first run because language data is downloaded once. Then click any line to correct it: the old text is covered with a matching background. A straight, well-lit photo gives the best result.</div>
+  <div class="foot">
+    <button class="btn soft" id="billClose">Close</button>
+    <button class="btn green" id="billGo" disabled>✏️ Convert &amp; edit</button>
+  </div>
+</div></div>
+
+<!-- Rent agreement -->
+<div class="modal" id="raModal"><div class="box wide">
+  <h2>🏠 Rent Agreement Template</h2>
+  <p class="hint-s">Fill in the details and a ready agreement opens in the editor. Every line stays editable, and you can add clauses, signatures and stamps. Anything you leave blank becomes a ________ line to fill in later. Type names in English here (add Hindi afterwards with Add Text).</p>
+  <h3 class="sec">Agreement</h3>
+  <div class="grid2">
+    <label class="f">City / State *<input type="text" id="ra_city" placeholder="e.g. Ghaziabad, Uttar Pradesh"></label>
+    <label class="f">Agreement date *<input type="date" id="ra_date"></label>
+    <label class="f">Rent starts on *<input type="date" id="ra_start"></label>
+    <label class="f">Duration (months)<input type="number" id="ra_months" value="11" min="1" max="120"></label>
+    <label class="f">Lock-in (months, 0 = none)<input type="number" id="ra_lock" value="3" min="0" max="60"></label>
+    <label class="f">Notice period (months)<input type="number" id="ra_notice" value="1" min="0" max="12"></label>
+    <label class="f">Rent increase on renewal (%)<input type="number" id="ra_inc" value="5" min="0" max="50"></label>
+    <label class="f">Property use<select id="ra_ptype"><option value="Residential">Residential</option><option value="Commercial">Commercial</option></select></label>
+  </div>
+  <h3 class="sec">Landlord (owner)</h3>
+  <div class="grid2">
+    <label class="f">Name *<input type="text" id="ra_lName"></label>
+    <label class="f">PAN / Aadhaar (optional)<input type="text" id="ra_lId"></label>
+    <label class="f span2">Address<input type="text" id="ra_lAddr"></label>
+  </div>
+  <h3 class="sec">Tenant</h3>
+  <div class="grid2">
+    <label class="f">Name *<input type="text" id="ra_tName"></label>
+    <label class="f">PAN / Aadhaar (optional)<input type="text" id="ra_tId"></label>
+    <label class="f span2">Permanent address<input type="text" id="ra_tAddr"></label>
+  </div>
+  <h3 class="sec">Property</h3>
+  <div class="grid2">
+    <label class="f span2">Full address of rented property *<textarea id="ra_prop"></textarea></label>
+    <label class="f span2">Fixtures and fittings (optional)<input type="text" id="ra_fix" placeholder="e.g. 3 fans, 4 lights, geyser, modular kitchen"></label>
+  </div>
+  <h3 class="sec">Money</h3>
+  <div class="grid2">
+    <label class="f">Monthly rent (Rs.) *<input type="number" id="ra_rent" min="0"></label>
+    <label class="f">Security deposit (Rs.)<input type="number" id="ra_dep" min="0"></label>
+    <label class="f">Rent due by (day of month)<input type="number" id="ra_due" value="5" min="1" max="28"></label>
+    <label class="f">Payment mode<select id="ra_mode"><option>bank transfer</option><option>UPI</option><option>cheque</option><option>cash</option></select></label>
+    <label class="f">Maintenance charges<select id="ra_maint"><option value="incl">Included in the rent</option><option value="tenant">Paid by Tenant separately</option><option value="landlord">Paid by Landlord</option></select></label>
+    <label class="f">Stamp duty / registration cost<select id="ra_stampBy"><option value="tenant">Borne by Tenant</option><option value="landlord">Borne by Landlord</option><option value="equal">Shared equally</option></select></label>
+  </div>
+  <h3 class="sec">Extras</h3>
+  <div class="grid2">
+    <label class="f span2">Additional terms (optional, one per line)<textarea id="ra_extra" placeholder="e.g. Pets are not allowed.&#10;Parking for one two-wheeler is included."></textarea></label>
+    <label class="f">Witness 1 (optional)<input type="text" id="ra_w1"></label>
+    <label class="f">Witness 2 (optional)<input type="text" id="ra_w2"></label>
+  </div>
+  <div class="legal">This is a general-purpose template, not legal advice. Stamp duty, registration rules and limits differ by state: agreements for more than 11 months usually need registration. Print on the stamp paper your state requires and have it checked locally if the amount is large.</div>
+  <div class="foot">
+    <button class="btn soft" id="raClose">Close</button>
+    <button class="btn soft" id="raDl">⬇ Download PDF</button>
+    <button class="btn green" id="raGo">✏️ Create &amp; edit</button>
+  </div>
+</div></div>
+
+<!-- Rent receipt -->
+<div class="modal" id="rrModal"><div class="box wide">
+  <h2>💵 Rent Receipt Templates</h2>
+  <p class="hint-s">Create one receipt for every month in a range, in the style you like. The PDF opens in the editor so you can still change any line, sign or stamp it.</p>
+  <h3 class="sec">Style</h3>
+  <div class="grid2">
+    <label class="f">Template<select id="rr_style"><option value="classic">Classic: bordered, one per page</option><option value="modern">Modern: coloured header, one per page</option><option value="compact">Compact: three per page</option></select></label>
+    <label class="f">Receipt number prefix<input type="text" id="rr_prefix" value="RR-"></label>
+  </div>
+  <h3 class="sec">Parties and property</h3>
+  <div class="grid2">
+    <label class="f">Tenant name *<input type="text" id="rr_tenant"></label>
+    <label class="f">Landlord name *<input type="text" id="rr_landlord"></label>
+    <label class="f">Landlord PAN (optional)<input type="text" id="rr_pan" placeholder="Needed for HRA if yearly rent is above Rs. 1,00,000"></label>
+    <label class="f">Landlord address (optional)<input type="text" id="rr_lAddr"></label>
+    <label class="f span2">Rented property address *<input type="text" id="rr_prop"></label>
+  </div>
+  <h3 class="sec">Payment</h3>
+  <div class="grid2">
+    <label class="f">Monthly rent (Rs.) *<input type="number" id="rr_amount" min="0"></label>
+    <label class="f">Payment mode<select id="rr_mode"><option>Bank transfer</option><option>UPI</option><option>Cash</option><option>Cheque</option></select></label>
+    <label class="f">From month *<input type="month" id="rr_from"></label>
+    <label class="f">To month *<input type="month" id="rr_to"></label>
+    <label class="f">Receipt date (day of the month)<input type="number" id="rr_day" value="1" min="1" max="31"></label>
+    <label class="f">Transaction / cheque no. (optional)<input type="text" id="rr_ref"></label>
+  </div>
+  <div class="row"><label><input type="checkbox" id="rr_stamp"> Add a revenue stamp box (customary for cash receipts above Rs. 5,000)</label></div>
+  <div class="foot">
+    <button class="btn soft" id="rrClose">Close</button>
+    <button class="btn soft" id="rrDl">⬇ Download PDF</button>
+    <button class="btn green" id="rrGo">✏️ Create &amp; edit</button>
+  </div>
+</div></div>
+
+<!-- Image / signature resizer -->
+<div class="modal" id="rzModal"><div class="box wide">
+  <h2>📐 Image &amp; Signature Resizer / Compressor</h2>
+  <div class="row">
+    <label class="btn">🖼️ Choose image<input id="rzFile" type="file" accept="image/*"></label>
+    <span class="hint-s" id="rzInfo">JPG, PNG or WebP. The image stays on your device.</span>
+  </div>
+  <div class="grid2">
+    <label class="f span2">Ready-made size<select id="rzPreset">
+      <option value="custom">Custom size</option>
+      <option value="sig1">Signature: 140 x 60 px, up to 20 KB</option>
+      <option value="sig2">Signature: 200 x 80 px, up to 30 KB</option>
+      <option value="pass">Passport photo: 3.5 x 4.5 cm (413 x 531 px), up to 50 KB</option>
+      <option value="photo">Photo: 200 x 230 px, up to 50 KB</option>
+      <option value="web">Smaller for email and WhatsApp: max 1280 px, up to 300 KB</option>
+    </select></label>
+    <label class="f">Unit<select id="rzUnit"><option value="px">Pixels</option><option value="cm">cm</option><option value="mm">mm</option><option value="inch">inch</option><option value="%">% of original</option></select></label>
+    <label class="f">Print resolution (DPI, for cm / mm / inch)<input type="number" id="rzDpi" value="300" min="50" max="1200"></label>
+    <label class="f">Width<input type="number" id="rzW" min="0" step="any" placeholder="auto"></label>
+    <label class="f">Height<input type="number" id="rzH" min="0" step="any" placeholder="auto"></label>
+    <label class="f span2">How to fit<select id="rzFit">
+      <option value="keep">Keep proportions (fit inside the size)</option>
+      <option value="pad">Exact size, add white margin (nothing is cut)</option>
+      <option value="crop">Exact size, crop the edges to fill</option>
+      <option value="stretch">Exact size, stretch</option>
+    </select></label>
+    <label class="f">Save as<select id="rzFmt"><option value="jpeg">JPG (smallest)</option><option value="png">PNG (sharp, transparent)</option><option value="webp">WebP</option></select></label>
+    <label class="f">Maximum file size in KB (optional)<input type="number" id="rzTarget" min="1" placeholder="e.g. 20"></label>
+    <label class="f span2">Quality when no size limit: <span id="rzQv">85</span>%<input type="range" id="rzQ" min="10" max="100" value="85"></label>
+  </div>
+  <div class="row"><label><input type="checkbox" id="rzTransp"> Make a white paper background transparent (for scanned signatures, saves as PNG)</label></div>
+  <div class="row"><button class="btn" id="rzRun" disabled>⚙️ Resize</button><span class="hint-s" id="rzMsg"></span></div>
+  <div class="row"><img id="rzPrev" class="prev" style="display:none"></div>
+  <div class="hint-s" id="rzOutInfo"></div>
+  <div class="hint-s">Check the size and file type your form or website asks for. The ready-made sizes are common values, not official rules.</div>
+  <div class="foot">
+    <button class="btn soft" id="rzClose">Close</button>
+    <button class="btn soft" id="rzSaveSig" disabled>💾 Save to my signatures</button>
+    <button class="btn soft" id="rzPlace" disabled>📌 Place on PDF</button>
+    <button class="btn green" id="rzDl" disabled>⬇ Download</button>
+  </div>
+</div></div>
+
+<!-- Compress PDF -->
+<div class="modal" id="cpModal"><div class="box">
+  <h2>🗜️ Reduce PDF Size</h2>
+  <div class="row">
+    <label class="btn">📄 Choose PDF<input id="cpFile" type="file" accept="application/pdf"></label>
+    <button class="btn soft" id="cpCurrent">Use the open PDF (with edits)</button>
+  </div>
+  <div class="hint-s" id="cpInfo">No file chosen.</div>
+  <div class="row"><label><input type="radio" name="cpMode" value="keep" checked> <b>Keep text sharp</b>: shrinks the photos inside the PDF</label></div>
+  <div class="row"><label><input type="radio" name="cpMode" value="raster"> <b>Maximum compression</b>: turns every page into an image, so text can no longer be selected or edited</label></div>
+  <div class="grid2">
+    <label class="f">Quality<select id="cpLevel"><option value="0">Better quality</option><option value="2" selected>Balanced</option><option value="4">Smallest file</option></select></label>
+    <label class="f">Target size (optional)
+      <span class="row" style="margin:0;flex-wrap:nowrap"><input type="number" id="cpTarget" min="1" placeholder="e.g. 200" style="flex:1;min-width:0"><select id="cpUnit"><option value="1024">KB</option><option value="1048576">MB</option></select></span>
+    </label>
+  </div>
+  <div class="hint-s">With a target size, the quality is lowered step by step until the file fits or the lowest setting is reached. Scanned PDFs shrink most with "Keep text sharp" only if they hold JPEG pages; otherwise use Maximum compression.</div>
+  <div class="row"><button class="btn" id="cpRun" disabled>🗜️ Compress</button><span class="hint-s" id="cpProg"></span></div>
+  <div class="hint-s" id="cpOutInfo"></div>
+  <div class="foot">
+    <button class="btn soft" id="cpClose">Close</button>
+    <button class="btn soft" id="cpEdit" disabled>✏️ Open in editor</button>
+    <button class="btn green" id="cpDl" disabled>⬇ Download</button>
+  </div>
+</div></div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const $ = id => document.getElementById(id);
+const pagesEl = $('pages');
+let pdfBytes = null, pdfDoc = null, baseName = 'document';
+let scale = 1.5, addMode = false, pending = null, queued = null;
+let edits = [], newTexts = [], imgs = [], activeRec = null;
+let marks = [], markStack = [], tints = {}, ocrLayers = {}, tool = null;
+
+const loading = (on, msg) => { $('loading').textContent = msg || 'Please wait…'; $('loading').classList.toggle('show', on); };
+const setStatus = s => $('status').textContent = s;
+const show = (id, on) => $(id).classList.toggle('show', on);
+let toastT = null;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3800); }
+
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)) || []; } catch (e) { return []; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { alert('Could not save in this browser (storage is full or blocked).'); return false; } },
+  obj(k) { try { return JSON.parse(localStorage.getItem(k)) || null; } catch (e) { return null; } }
+};
+const hexToRgb = h => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
+const isWinAnsi = s => /^[\x20-\x7E\xA0-\xFF]*$/.test(s);
+function downloadBlob(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+const pdfBlob = bytes => new Blob([bytes], { type: 'application/pdf' });
+const isPdfFile = f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+const isImgFile = f => /^image\/(png|jpe?g)$/.test(f.type) || /\.(png|jpe?g)$/i.test(f.name);
+const isPngFile = f => f.type === 'image/png' || /\.png$/i.test(f.name);
+
+/* ---------- Fonts ---------- */
+// [key, css family, label, usable for signatures, lazy-loaded]
+const HW = [
+  ['Caveat', 'Caveat', 'Caveat', 1], ['Kalam', 'Kalam', 'Kalam (Hindi + English)', 1], ['PatrickHand', 'Patrick Hand', 'Patrick Hand', 0],
+  ['HomemadeApple', 'Homemade Apple', 'Homemade Apple', 1], ['DancingScript', 'Dancing Script', 'Dancing Script', 1],
+  ['ShadowsIntoLight', 'Shadows Into Light', 'Shadows Into Light', 1], ['GreatVibes', 'Great Vibes', 'Great Vibes', 1],
+  ['Allura', 'Allura', 'Allura', 1], ['Sacramento', 'Sacramento', 'Sacramento', 1], ['Satisfy', 'Satisfy', 'Satisfy', 1],
+  ['Yellowtail', 'Yellowtail', 'Yellowtail', 1], ['ReenieBeanie', 'Reenie Beanie', 'Reenie Beanie', 1]
+];
+const addHw = (sig, names) => names.split('|').forEach(n => HW.push([n.replace(/ /g, ''), n, n, sig, 1]));
+addHw(1, 'Pacifico|Covered By Your Grace|Cedarville Cursive|La Belle Aurore|Marck Script|Cookie|Kaushan Script|Zeyada|Nothing You Could Do|Over the Rainbow|Waiting for the Sunrise|Mansalva|Parisienne|Pinyon Script|Tangerine|Alex Brush|Mr Dafoe|Rouge Script|Herr Von Muellerhoff|Mrs Saint Delafield|Loved by the King|Give You Glory');
+addHw(0, 'Indie Flower|Gloria Hallelujah|Architects Daughter|Permanent Marker|Rock Salt|Courgette|Handlee|Neucha|Just Another Hand|Gochi Hand|Nanum Pen Script|Sue Ellen Francisco|Walter Turncoat|Schoolbell|Sunshiney|Shadows Into Light Two');
+HW.push(['Dekko', 'Dekko', 'Dekko (Hindi + English)', 0, 1], ['Amita', 'Amita', 'Amita (Hindi + English)', 0, 1]);
+
+// [group, family, generic, weights]
+const WEB = [];
+const addWeb = (grp, gen, wg, names) => names.split('|').forEach(n => WEB.push([grp, n, gen, wg]));
+addWeb('Sans-serif', 'sans-serif', '400;700', 'Roboto|Open Sans|Lato|Montserrat|Poppins|Inter|Nunito|Raleway|Ubuntu|PT Sans|Work Sans|Noto Sans|Source Sans 3|Arimo|Oswald|Rubik|Quicksand|Karla|DM Sans|Barlow');
+addWeb('Serif', 'serif', '400;700', 'Merriweather|Lora|Playfair Display|PT Serif|Libre Baskerville|Crimson Text|EB Garamond|Noto Serif|Tinos|Cormorant Garamond|Bitter|Roboto Slab|Zilla Slab|Cinzel|Spectral');
+addWeb('Monospace', 'monospace', '400;700', 'Roboto Mono|Source Code Pro|Space Mono|Inconsolata|Cousine|JetBrains Mono|Fira Code|IBM Plex Mono|Courier Prime');
+addWeb('Display', 'sans-serif', '', 'Bebas Neue|Anton|Lobster|Abril Fatface|Righteous|Special Elite|Bangers|Alfa Slab One');
+addWeb('Display', 'sans-serif', '400;700', 'Fredoka');
+addWeb('Hindi (Devanagari)', 'sans-serif', '400;700', 'Hind|Mukta|Noto Sans Devanagari|Martel|Eczar|Khand|Rajdhani|Karma');
+addWeb('Hindi (Devanagari)', 'sans-serif', '', 'Yatra One');
+
+const FONTS = {
+  Helvetica: { css: 'Arial, Helvetica, sans-serif', label: 'Sans (Arial)' },
+  Times: { css: '"Times New Roman", Times, serif', label: 'Serif (Times)' },
+  Courier: { css: '"Courier New", Courier, monospace', label: 'Mono (Courier)' }
+};
+HW.forEach(([k, fam, label, sig, lazy]) => { FONTS[k] = { css: `"${fam}", cursive`, hw: true, label: '✍️ ' + label, fam, lazy: !!lazy }; });
+WEB.forEach(([grp, fam, gen, wg]) => { FONTS['W_' + fam.replace(/ /g, '')] = { css: `"${fam}", ${gen}`, web: true, label: fam, group: grp, fam, wg, lazy: true }; });
+
+// Google fonts are loaded on demand, so the page starts fast
+const famLinks = {};
+function loadFam(fam, wg) {
+  if (famLinks[fam]) return famLinks[fam];
+  return famLinks[fam] = new Promise(res => {
+    const l = document.createElement('link'); l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=' + fam.replace(/ /g, '+') + (wg ? ':wght@' + wg : '') + '&display=swap';
+    l.onload = l.onerror = () => res(); document.head.appendChild(l);
+  });
+}
+function ensureFont(f) { const F = FONTS[f.fam]; return F && F.lazy ? loadFam(F.fam, F.wg) : Promise.resolve(); }
+function fillFontSelect(sel) {
+  sel.innerHTML = '';
+  const groups = {};
+  Object.entries(FONTS).forEach(([k, v]) => {
+    if (v.orig) return;
+    const g = v.hw ? '✍️ Handwriting' : (v.group || 'Standard (real, selectable text)');
+    (groups[g] = groups[g] || []).push([k, v]);
+  });
+  Object.entries(groups).forEach(([g, list]) => {
+    const og = document.createElement('optgroup'); og.label = g;
+    list.forEach(([k, v]) => { const o = document.createElement('option'); o.value = k; o.textContent = v.label; og.appendChild(o); });
+    sel.appendChild(og);
+  });
+}
+function ensureFontOption(fam) {
+  const sel = $('fontSel');
+  if ([...sel.options].some(o => o.value === fam)) return;
+  let og = sel.querySelector('optgroup[data-orig]');
+  if (!og) { og = document.createElement('optgroup'); og.label = '★ From this PDF'; og.dataset.orig = '1'; sel.insertBefore(og, sel.firstChild); }
+  const o = document.createElement('option'); o.value = fam; o.textContent = FONTS[fam].label; og.appendChild(o);
+}
+fillFontSelect($('fontSel')); fillFontSelect($('ocrFont')); $('ocrFont').value = 'Caveat';
+
+function detectFont(name, family) {
+  const n = (name || '').toLowerCase(), f = (family || '').toLowerCase();
+  let fam = 'Helvetica';
+  if (/courier|mono|consolas|typewriter/.test(n) || f === 'monospace') fam = 'Courier';
+  else if (!/sans|arial|helvet|calibri|verdana|tahoma|segoe/.test(n) &&
+    (/times|serif|georgia|garamond|cambria|palatino|bookman|minion|roman|century/.test(n) || f === 'serif')) fam = 'Times';
+  return { fam, bold: /bold|black|heavy|semibold|demi|[-,]bd\b/.test(n), italic: /italic|oblique|[-,]it\b/.test(n) };
+}
+function applyFontStyle(el, f) {
+  if (FONTS[f.fam].lazy) loadFam(FONTS[f.fam].fam, FONTS[f.fam].wg);
+  el.style.fontFamily = FONTS[f.fam].css;
+  el.style.fontWeight = f.bold ? '700' : '400';
+  el.style.fontStyle = f.italic ? 'italic' : 'normal';
+}
+function stdFontName(f) {
+  const S = PDFLib.StandardFonts;
+  const m = {
+    Helvetica: [S.Helvetica, S.HelveticaBold, S.HelveticaOblique, S.HelveticaBoldOblique],
+    Times: [S.TimesRoman, S.TimesRomanBold, S.TimesRomanItalic, S.TimesRomanBoldItalic],
+    Courier: [S.Courier, S.CourierBold, S.CourierOblique, S.CourierBoldOblique]
+  };
+  return m[f.fam][(f.bold ? 1 : 0) + (f.italic ? 2 : 0)];
+}
+const sameFont = (a, b) => a.fam === b.fam && a.bold === b.bold && a.italic === b.italic;
+const isModified = r => r.newStr !== r.str || !sameFont(r.font, r.fontOrig);
+
+function ensureInk(r) {
+  if (r.inkOrig === undefined) {
+    r.inkOrig = null;
+    if (r.ctx && r.box) { try { r.inkOrig = sampleBoxInfo(r.ctx, r.box[0], r.box[1], r.box[2], r.box[3], true).ink; } catch (e) {} }
+  }
+  return r.inkOrig;
+}
+function refreshRec(r) {
+  const m = isModified(r);
+  r.el.classList.toggle('mod', m);
+  if (m) {
+    const lum = 0.299 * r.bg[0] + 0.587 * r.bg[1] + 0.114 * r.bg[2];
+    r.el.style.background = `rgb(${r.bg[0]},${r.bg[1]},${r.bg[2]})`;
+    r.el.style.color = r.ink || ensureInk(r) || (lum > 128 ? '#000' : '#fff');
+    if (r.cover) r.el.style.boxShadow = `0 0 0 3px rgb(${r.bg.join(',')})`;
+  } else { r.el.style.background = ''; r.el.style.color = ''; r.el.style.boxShadow = ''; }
+}
+function setActive(rec) {
+  activeRec = rec;
+  $('btnReset').disabled = !rec || !!rec.isNew;
+  if (!rec) return;
+  ensureFontOption(rec.font.fam); $('fontSel').value = rec.font.fam;
+  $('btnBold').classList.toggle('active', rec.font.bold);
+  $('btnItalic').classList.toggle('active', rec.font.italic);
+  if (rec.isNew) { $('newSize').value = rec.size; $('newColor').value = rec.color; }
+}
+function changeFont(mut) {
+  if (!activeRec) return;
+  mut(activeRec.font);
+  applyFontStyle(activeRec.el, activeRec.font);
+  if (!activeRec.isNew) { activeRec.ink = FONTS[activeRec.font.fam].hw ? $('newColor').value : null; refreshRec(activeRec); }
+  setActive(activeRec); updateCount();
+}
+$('fontSel').addEventListener('change', () => changeFont(f => f.fam = $('fontSel').value));
+$('btnBold').addEventListener('mousedown', e => e.preventDefault());
+$('btnItalic').addEventListener('mousedown', e => e.preventDefault());
+$('btnBold').addEventListener('click', () => changeFont(f => f.bold = !f.bold));
+$('btnItalic').addEventListener('click', () => changeFont(f => f.italic = !f.italic));
+$('newColor').addEventListener('input', () => {
+  const r = activeRec; if (!r) return;
+  if (r.isNew) { r.color = $('newColor').value; r.el.style.color = r.color; }
+  else if (FONTS[r.font.fam].hw) { r.ink = $('newColor').value; refreshRec(r); }
+});
+$('newSize').addEventListener('input', () => {
+  const r = activeRec; if (!r || !r.isNew) return;
+  r.size = Math.max(6, +$('newSize').value || 12); r.el.style.fontSize = (r.size * scale) + 'px';
+});
+$('btnReset').addEventListener('click', () => {
+  const r = activeRec; if (!r || r.isNew) return;
+  r.el.textContent = r.str; r.newStr = r.str; r.font = { ...r.fontOrig }; r.ink = null;
+  applyFontStyle(r.el, r.font); refreshRec(r); setActive(r); updateCount();
+});
+$('btnHandAll').addEventListener('click', () => openHw());
+
+/* ---------- Views ---------- */
+function showEditor(on) {
+  $('home').classList.toggle('hidden', on);
+  ['editor', 'toolbar', 'btnSave'].forEach(id => $(id).classList.toggle('hidden', !on));
+  if (!on) setStatus('');
+  window.scrollTo(0, 0);
+}
+$('brand').addEventListener('click', () => {
+  if (pdfDoc && hasChanges() && !confirm('Go back to the home page? Your unsaved changes will be lost.')) return;
+  pdfDoc = null; pdfBytes = null; pagesEl.innerHTML = ''; edits = []; newTexts = []; imgs = []; marks = []; markStack = []; tints = {}; ocrLayers = {}; clearTool();
+  showEditor(false);
+});
+function needPdf(fn) {
+  if (pdfDoc) { fn && fn(); return; }
+  queued = fn || null;
+  toast('Choose a PDF first. Your tool opens right after.');
+  $('homeFiles').click();
+}
+
+/* ---------- Opening files ---------- */
+async function reloadFrom(bytes, layers) {
+  pdfBytes = bytes; tints = {}; ocrLayers = layers || {};
+  pdfDoc = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
+  await renderAll();
+}
+async function openPdfBytes(bytes, name, layers) {
+  baseName = name;
+  loading(true, 'Opening PDF…');
+  try {
+    await reloadFrom(bytes, layers); showEditor(true);
+    const q = queued; queued = null; if (q) q();
+  } catch (err) { console.error(err); alert('Could not open this PDF: ' + err.message); }
+  loading(false);
+}
+async function imageFileToPdfBytes(f) {
+  const { PDFDocument } = PDFLib, out = await PDFDocument.create();
+  const bytes = new Uint8Array(await f.arrayBuffer());
+  const im = isPngFile(f) ? await out.embedPng(bytes) : await out.embedJpg(bytes);
+  const k = Math.min(1, 842 / Math.max(im.width, im.height));
+  const pg = out.addPage([im.width * k, im.height * k]); pg.drawImage(im, { x: 0, y: 0, width: im.width * k, height: im.height * k });
+  return await out.save();
+}
+async function handleFiles(list) {
+  const files = [...list].filter(f => isPdfFile(f) || isImgFile(f));
+  if (!list.length) return;
+  if (!files.length) { toast('Please choose PDF, JPG or PNG files.'); return; }
+  if (files.length === 1) {
+    const f = files[0];
+    try { await openPdfBytes(isPdfFile(f) ? new Uint8Array(await f.arrayBuffer()) : await imageFileToPdfBytes(f), f.name.replace(/\.[^.]+$/, '')); }
+    catch (err) { alert('Could not open this file: ' + err.message); }
+  } else { queued = null; openMerge(files, true); }
+}
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+drop.addEventListener('click', () => $('homeFiles').click());
+$('homeFiles').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+['dragover', 'drop'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
+
+
+
+/* ---------- Render ---------- */
+function sampleBg(ctx, x, y) {
+  try { const d = ctx.getImageData(Math.max(0, Math.floor(x - 2)), Math.max(0, Math.floor(y)), 1, 1).data; return [d[0], d[1], d[2]]; }
+  catch (e) { return [255, 255, 255]; }
+}
+async function renderAll() {
+  pagesEl.innerHTML = ''; edits = []; newTexts = []; imgs = []; marks = []; markStack = []; activeRec = null; pending = null;
+  Object.keys(FONTS).forEach(k => { if (k.startsWith('ORIG:')) delete FONTS[k]; });
+  $('fontSel').querySelectorAll('optgroup[data-orig]').forEach(g => g.remove());
+  setStatus(pdfDoc.numPages + ' pages');
+  for (let p = 1; p <= pdfDoc.numPages; p++) {
+    const page = await pdfDoc.getPage(p);
+    const vp = page.getViewport({ scale });
+    const wrap = document.createElement('div');
+    wrap.className = 'page' + (addMode ? ' addmode' : '') + (tool ? ' toolmode' : '');
+    wrap.style.width = vp.width + 'px'; wrap.style.height = vp.height + 'px';
+    wrap.dataset.pageIndex = p - 1; wrap.dataset.ptHeight = vp.height / scale;
+    const canvas = document.createElement('canvas');
+    canvas.width = vp.width; canvas.height = vp.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    wrap.appendChild(canvas);
+    const pn = document.createElement('div'); pn.className = 'pn'; pn.textContent = p; wrap.appendChild(pn);
+    pagesEl.appendChild(wrap);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    // fonts that pdf.js loaded from this PDF, so edited text can keep the very same typeface
+    const faces = new Set([...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/["']/g, '')));
+
+    const tc = await page.getTextContent();
+    for (const item of tc.items) {
+      if (!item.str || !item.str.trim()) continue;
+      const tx = pdfjsLib.Util.transform(vp.transform, item.transform);
+      if (Math.abs(tx[1]) > 0.01 || (Math.abs(tx[2]) > 0.01 && Math.abs(tx[0]) < 0.01)) continue;
+      const fs = Math.hypot(tx[2], tx[3]);
+      if (fs < 2) continue;
+      const left = tx[4], top = tx[5] - fs * 0.88;
+      const bg = sampleBg(ctx, left, top + fs * 0.5);
+      let realName = '', fam = '';
+      try { realName = page.commonObjs.get(item.fontName).name || ''; } catch (e) {}
+      try { fam = (tc.styles[item.fontName] || {}).fontFamily || ''; } catch (e) {}
+      let fnt = detectFont(realName, fam);
+      if (faces.has(item.fontName)) {
+        const key = 'ORIG:' + item.fontName;
+        if (!FONTS[key]) FONTS[key] = { css: `"${item.fontName}", ${FONTS[fnt.fam].css}`, orig: true, label: '★ Original (' + (realName.replace(/^[A-Z]{6}\+/, '') || 'PDF font') + ')' };
+        fnt = { fam: key, bold: false, italic: false };
+      }
+      const el = document.createElement('div');
+      el.className = 't'; el.contentEditable = 'true'; el.spellcheck = false;
+      el.textContent = item.str;
+      el.style.left = left + 'px'; el.style.top = top + 'px'; el.style.fontSize = fs + 'px';
+      applyFontStyle(el, fnt);
+      el.style.minWidth = (item.width * scale) + 'px'; el.style.height = (fs * 1.15) + 'px';
+      const rec = { page: p - 1, str: item.str, newStr: item.str, x: item.transform[4], y: item.transform[5], size: Math.hypot(item.transform[2], item.transform[3]), w: item.width, bg, el, ink: null, ctx, box: [left, top, left + item.width * scale, top + fs * 1.15], font: { ...fnt }, fontOrig: { ...fnt } };
+      wireTextRec(el, rec); edits.push(rec); wrap.appendChild(el);
+    }
+    if (ocrLayers[p - 1]) addOcrRecs(wrap, ctx, p - 1, ocrLayers[p - 1], vp.height / scale);
+    applyTint(wrap); wireMarkDrawing(wrap, ctx);
+    wrap.addEventListener('click', ev => {
+      if (ev.target !== canvas) return;
+      const r = wrap.getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
+      if (pending) placePending(wrap, x, y); else if (addMode) addNewText(wrap, x, y);
+    });
+  }
+  updateCount();
+}
+function updateCount() {
+  if (!pdfDoc) return;
+  const n = edits.filter(isModified).length + newTexts.filter(r => r.el.textContent.trim()).length + imgs.length + marks.length + Object.keys(tints).length;
+  setStatus(`${pdfDoc.numPages} pages · ${n} changes`);
+}
+const hasContentChanges = () => edits.some(isModified) || newTexts.some(r => r.el.textContent.trim()) || imgs.length > 0 || marks.length > 0;
+const hasChanges = () => hasContentChanges() || Object.keys(tints).length > 0;
+
+/* ---------- Add text / place things ---------- */
+function setAddMode(on) {
+  addMode = on; if (on) { pending = null; clearTool(); }
+  $('btnAdd').classList.toggle('active', on);
+  document.querySelectorAll('.page').forEach(p => { p.classList.toggle('addmode', on); if (on) p.classList.remove('placemode'); });
+}
+function setPending(p) {
+  pending = p;
+  if (p) { clearTool(); addMode = false; $('btnAdd').classList.remove('active'); document.querySelectorAll('.page').forEach(pg => pg.classList.remove('addmode')); }
+  document.querySelectorAll('.page').forEach(pg => pg.classList.toggle('placemode', !!p));
+  if (p) setStatus('Click on the page to place it (Esc to cancel)'); else updateCount();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { clearTool(); setPending(null); setAddMode(false); } });
+$('btnAdd').addEventListener('click', () => { if (pdfDoc) setAddMode(!addMode); });
+
+function placePending(wrap, x, y) {
+  const p = pending; setPending(null);
+  if (p.type === 'text') addNewText(wrap, x, y, p);
+  else { const wPx = p.defaultW * scale, hPx = wPx / p.ratio; createImageItem(wrap, p.dataUrl, x - wPx / 2, y - hPx / 2, wPx, hPx, p.ratio); }
+}
+function addNewText(wrap, x, y, opts = {}) {
+  const size = opts.size || Math.max(6, +$('newSize').value || 12);
+  const color = opts.color || $('newColor').value;
+  const font = opts.font || { fam: $('fontSel').value || 'Helvetica', bold: $('btnBold').classList.contains('active'), italic: $('btnItalic').classList.contains('active') };
+  const el = document.createElement('div');
+  el.className = 't new'; el.contentEditable = 'true'; el.spellcheck = false;
+  el.textContent = opts.text || '';
+  el.style.left = x + 'px'; el.style.top = (y - size * scale * 0.98) + 'px'; el.style.fontSize = (size * scale) + 'px';
+  applyFontStyle(el, font); el.style.color = color;
+  const rec = { isNew: true, page: +wrap.dataset.pageIndex, x: x / scale, y: (+wrap.dataset.ptHeight) - (y / scale), size, color, el, font };
+  el.addEventListener('focus', () => setActive(rec));
+  el.addEventListener('input', updateCount);
+  el.addEventListener('blur', () => { if (!el.textContent.trim()) { el.remove(); newTexts = newTexts.filter(n => n !== rec); updateCount(); } });
+  newTexts.push(rec); wrap.appendChild(el);
+  el.focus(); setAddMode(false); updateCount();
+}
+
+/* ---------- Image items (stamps, signatures, pictures) ---------- */
+function createImageItem(wrap, dataUrl, left, top, w, h, ratio) {
+  const el = document.createElement('div');
+  el.className = 'img-item';
+  Object.assign(el.style, { left: left + 'px', top: top + 'px', width: w + 'px', height: h + 'px' });
+  const im = document.createElement('img'); im.src = dataUrl; im.draggable = false;
+  const rs = document.createElement('div'); rs.className = 'rs';
+  const del = document.createElement('div'); del.className = 'del'; del.textContent = '×';
+  const rot = document.createElement('div'); rot.className = 'rot'; rot.textContent = '↻'; rot.title = 'Drag to rotate (hold Shift to snap to 15°)';
+  const rb = document.createElement('div'); rb.className = 'rb';
+  const bl = document.createElement('button'); bl.textContent = '⟲'; bl.title = 'Rotate 15° left';
+  const br = document.createElement('button'); br.textContent = '⟳'; br.title = 'Rotate 15° right';
+  rb.append(bl, br);
+  el.append(im, rs, del, rot, rb);
+  const rec = { page: +wrap.dataset.pageIndex, el, dataUrl, ratio, ptHeight: +wrap.dataset.ptHeight, rot: 0 };
+  const setRot = a => { a = ((a % 360) + 540) % 360 - 180; rec.rot = a; el.style.transform = a ? `rotate(${a}deg)` : ''; };
+  [bl, br].forEach((b, i) => {
+    b.addEventListener('pointerdown', e => e.stopPropagation());
+    b.addEventListener('click', e => { e.stopPropagation(); setRot(rec.rot + (i ? 15 : -15)); });
+  });
+  rot.addEventListener('pointerdown', e => {
+    e.stopPropagation(); e.preventDefault(); rot.setPointerCapture(e.pointerId);
+    const rc = el.getBoundingClientRect(), cx = rc.left + rc.width / 2, cy = rc.top + rc.height / 2;
+    const mv = ev => {
+      let a = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90;
+      if (ev.shiftKey) a = Math.round(a / 15) * 15;
+      else { const n = ((a % 360) + 360) % 360; [0, 90, 180, 270, 360].forEach(s => { if (Math.abs(n - s) < 3) a = s; }); }
+      setRot(a);
+    };
+    const up = () => { rot.removeEventListener('pointermove', mv); rot.removeEventListener('pointerup', up); };
+    rot.addEventListener('pointermove', mv); rot.addEventListener('pointerup', up);
+  });
+  del.addEventListener('click', e => { e.stopPropagation(); el.remove(); imgs = imgs.filter(i => i !== rec); updateCount(); });
+  el.addEventListener('pointerdown', e => {
+    if (e.target === del || e.target === rot || e.target.closest('.rb')) return;
+    const resizing = e.target === rs, sx = e.clientX, sy = e.clientY, ol = el.offsetLeft, ot = el.offsetTop, ow = el.offsetWidth, oh = el.offsetHeight;
+    const ang = rec.rot * Math.PI / 180, ca = Math.cos(ang), sa = Math.sin(ang);
+    el.setPointerCapture(e.pointerId); e.preventDefault();
+    const mv = ev => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (resizing) {
+        // resize along the image's own (rotated) axes and keep the opposite corner in place
+        const nw = Math.max(20, ow + dx * ca + dy * sa), nh = nw / ratio, dw = nw - ow, dh = nh - oh;
+        const ccx = ol + ow / 2 + (dw / 2) * ca - (dh / 2) * sa, ccy = ot + oh / 2 + (dw / 2) * sa + (dh / 2) * ca;
+        Object.assign(el.style, { width: nw + 'px', height: nh + 'px', left: (ccx - nw / 2) + 'px', top: (ccy - nh / 2) + 'px' });
+      } else { el.style.left = (ol + dx) + 'px'; el.style.top = (ot + dy) + 'px'; }
+    };
+    const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); };
+    el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up);
+  });
+  imgs.push(rec); wrap.appendChild(el); updateCount();
+}
+function loadImage(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Could not read the image')); i.src = src; }); }
+function readAsDataURL(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); }); }
+async function fileToCanvas(file, maxDim = 1600, removePaper = false) {
+  const im = await loadImage(await readAsDataURL(file));
+  const k = Math.min(1, maxDim / Math.max(im.width, im.height));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(im.width * k)); c.height = Math.max(1, Math.round(im.height * k));
+  const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, c.width, c.height);
+  if (removePaper) {
+    const d = x.getImageData(0, 0, c.width, c.height), a = d.data;
+    for (let i = 0; i < a.length; i += 4) {
+      const lum = (a[i] + a[i + 1] + a[i + 2]) / 3;
+      if (lum > 215) a[i + 3] = 0; else if (lum > 150) a[i + 3] = Math.round(a[i + 3] * (215 - lum) / 65);
+    }
+    x.putImageData(d, 0, 0);
+  }
+  return c;
+}
+function recolor(c, hex) {
+  const [r, g, b] = hexToRgb(hex).map(v => Math.round(v * 255)), x = c.getContext('2d', { willReadFrequently: true });
+  const d = x.getImageData(0, 0, c.width, c.height), a = d.data;
+  for (let i = 0; i < a.length; i += 4) { a[i] = r; a[i + 1] = g; a[i + 2] = b; }
+  x.putImageData(d, 0, 0); return c;
+}
+function trimCanvas(c, pad = 8) {
+  const w = c.width, h = c.height, d = c.getContext('2d').getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (d[(y * w + x) * 4 + 3] > 12) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+  }
+  if (maxX < 0) return c;
+  minX = Math.max(0, minX - pad); minY = Math.max(0, minY - pad); maxX = Math.min(w - 1, maxX + pad); maxY = Math.min(h - 1, maxY + pad);
+  const o = document.createElement('canvas'); o.width = maxX - minX + 1; o.height = maxY - minY + 1;
+  o.getContext('2d').drawImage(c, minX, minY, o.width, o.height, 0, 0, o.width, o.height); return o;
+}
+function rotateCanvas(c, deg) {
+  if (!deg) return c;
+  const a = deg * Math.PI / 180, w = c.width, h = c.height;
+  const bw = Math.abs(w * Math.cos(a)) + Math.abs(h * Math.sin(a)), bh = Math.abs(w * Math.sin(a)) + Math.abs(h * Math.cos(a));
+  const R = document.createElement('canvas'); R.width = Math.ceil(bw); R.height = Math.ceil(bh);
+  const r = R.getContext('2d'); r.translate(bw / 2, bh / 2); r.rotate(a); r.drawImage(c, -w / 2, -h / 2); return R;
+}
+function placeImageData(dataUrl, w, h, defaultW) {
+  needPdf(() => setPending({ type: 'image', dataUrl, ratio: w / h, defaultW }));
+}
+$('imgFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const c = await fileToCanvas(f); placeImageData(c.toDataURL('image/png'), c.width, c.height, Math.min(220, c.width * 0.5)); }
+  catch (err) { alert(err.message); }
+  e.target.value = '';
+});
+
+/* ---------- Zoom ---------- */
+async function setZoom(s) {
+  if (!pdfDoc) return;
+  if (hasContentChanges() && !confirm('Changing zoom clears the changes you have made so far. Download first if needed. Continue?')) return;
+  scale = Math.min(3, Math.max(0.75, s)); $('zoomVal').textContent = Math.round(scale * 100) + '%';
+  loading(true); await renderAll(); loading(false);
+}
+$('zoomIn').addEventListener('click', () => setZoom(scale + 0.25));
+$('zoomOut').addEventListener('click', () => setZoom(scale - 0.25));
+
+/* ---------- Text as image (handwriting, Hindi, special characters) ---------- */
+async function textToImage(text, f, sizePt, rgb255) {
+  const S = 5, px = sizePt * S, pad = px * 0.15, lh = px * 1.25;
+  const fontStr = `${f.italic ? 'italic ' : ''}${f.bold ? '700' : '400'} ${px}px ${FONTS[f.fam].css}`;
+  await ensureFont(f);
+  try { await document.fonts.load(fontStr, text); } catch (e) {}
+  const lines = text.split('\n');
+  const c = document.createElement('canvas'), x = c.getContext('2d');
+  x.font = fontStr;
+  const wmax = Math.max(1, ...lines.map(l => x.measureText(l).width));
+  c.width = Math.ceil(wmax + pad * 2); c.height = Math.ceil(lh * lines.length + pad * 2);
+  x.font = fontStr; x.fillStyle = `rgb(${rgb255[0]},${rgb255[1]},${rgb255[2]})`; x.textBaseline = 'alphabetic';
+  lines.forEach((l, i) => x.fillText(l, pad, pad + px * 0.9 + i * lh));
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), wPt: c.width / S, hPt: c.height / S, padPt: pad / S, baselinePt: (pad + px * 0.9) / S };
+}
+
+/* ---------- Build edited PDF ---------- */
+async function buildEditedPdf() {
+  const { PDFDocument, rgb, degrees } = PDFLib;
+  const doc = await PDFDocument.load(pdfBytes.slice(0), { ignoreEncryption: true });
+  const pages = doc.getPages(), stdCache = {};
+  async function stdFont(f) { const key = stdFontName(f); if (!stdCache[key]) stdCache[key] = await doc.embedFont(key); return stdCache[key]; }
+  async function prepare(text, f, size, col) {
+    const FF = FONTS[f.fam], asImage = FF.hw || FF.web || FF.orig || !isWinAnsi(text.replace(/\n/g, ''));
+    if (!asImage) {
+      const font = await stdFont(f), lines = text.split('\n');
+      const width = Math.max(...lines.map(l => font.widthOfTextAtSize(l, size)));
+      return { width, draw: (page, x, y) => lines.forEach((l, i) => { if (l) page.drawText(l, { x, y: y - i * size * 1.25, size, font, color: rgb(col[0], col[1], col[2]) }); }) };
+    }
+    const im = await textToImage(text, f, size, col.map(v => Math.round(v * 255)));
+    const emb = await doc.embedPng(im.bytes);
+    return { width: im.wPt - 2 * im.padPt, draw: (page, x, y) => page.drawImage(emb, { x: x - im.padPt, y: y - (im.hPt - im.baselinePt), width: im.wPt, height: im.hPt }) };
+  }
+  for (const r of edits) {
+    if (!isModified(r)) continue;
+    const page = pages[r.page], [br, bgc, bb] = r.bg.map(v => v / 255);
+    const lum = 0.299 * r.bg[0] + 0.587 * r.bg[1] + 0.114 * r.bg[2];
+    const inkHex = r.ink || ensureInk(r);
+    const col = inkHex ? hexToRgb(inkHex) : (lum > 128 ? [0, 0, 0] : [1, 1, 1]);
+    let prep = null;
+    if (r.newStr.trim()) prep = await prepare(r.newStr, r.font, r.size, col);
+    const cv = r.cover ? { ...r.cover } : { x: r.x - 1, y: r.y - r.size * 0.3, w: r.w + 2, h: r.size * 1.35 };
+    if (prep) cv.w = Math.max(cv.w, prep.width + (r.cover ? 3 : 2));
+    page.drawRectangle({ x: cv.x, y: cv.y, width: cv.w, height: cv.h, color: rgb(br, bgc, bb), borderWidth: 0 });
+    if (prep) prep.draw(page, r.x, r.y);
+  }
+  // erase boxes, page colour, then highlights (text and pictures are added on top of the colour)
+  const BM = PDFLib.BlendMode;
+  const multRect = (pg, x, y, w, h, hex, op) => {
+    const [a, b, c] = hexToRgb(hex);
+    pg.drawRectangle({ x, y, width: w, height: h, color: rgb(a, b, c), borderWidth: 0, ...(BM ? { blendMode: BM.Multiply, opacity: op } : { opacity: Math.min(op, 0.3) }) });
+  };
+  const markBox = m => { const e = m.el; return { x: e.offsetLeft / scale, y: m.ptHeight - (e.offsetTop + e.offsetHeight) / scale, w: e.offsetWidth / scale, h: e.offsetHeight / scale }; };
+  for (const m of marks) if (m.type === 'erase') {
+    const b = markBox(m), [er, eg, eb] = m.bg.map(v => v / 255);
+    pages[m.page].drawRectangle({ x: b.x, y: b.y, width: b.w, height: b.h, color: rgb(er, eg, eb), borderWidth: 0 });
+  }
+  for (const [i, t] of Object.entries(tints)) {
+    const pg = pages[+i]; if (!pg) continue;
+    const mb = pg.getMediaBox(); multRect(pg, mb.x, mb.y, mb.width, mb.height, t.color, t.op);
+  }
+  for (const m of marks) if (m.type === 'hl') { const b = markBox(m); multRect(pages[m.page], b.x, b.y, b.w, b.h, m.color, 1); }
+  for (const n of newTexts) {
+    const text = n.el.innerText.replace(/ /g, ' ').replace(/\n+$/, '');
+    if (!text.trim()) continue;
+    (await prepare(text, n.font, n.size, hexToRgb(n.color))).draw(pages[n.page], n.x, n.y);
+  }
+  const embCache = {};
+  for (const im of imgs) {
+    if (!embCache[im.dataUrl]) embCache[im.dataUrl] = await doc.embedPng(await (await fetch(im.dataUrl)).arrayBuffer());
+    const e = im.el, w = e.offsetWidth / scale, h = e.offsetHeight / scale, phi = -(im.rot || 0) * Math.PI / 180;
+    const cx = (e.offsetLeft + e.offsetWidth / 2) / scale, cy = im.ptHeight - (e.offsetTop + e.offsetHeight / 2) / scale;
+    // pdf-lib rotates around the lower-left corner, so move that corner to where the rotated image needs it
+    pages[im.page].drawImage(embCache[im.dataUrl], { x: cx - (w / 2) * Math.cos(phi) + (h / 2) * Math.sin(phi), y: cy - (w / 2) * Math.sin(phi) - (h / 2) * Math.cos(phi), width: w, height: h, rotate: degrees(-(im.rot || 0)) });
+  }
+  return await doc.save();
+}
+$('btnSave').addEventListener('click', async () => {
+  loading(true, 'Building your PDF…');
+  try { downloadBlob(pdfBlob(await buildEditedPdf()), baseName + '-edited.pdf'); setStatus('✅ PDF downloaded'); }
+  catch (err) { console.error(err); alert('Could not save: ' + err.message); }
+  loading(false);
+});
+
+/* ---------- Shared helpers ---------- */
+function wireTabs(btnIds, paneIds, onChange) {
+  btnIds.forEach((b, i) => $(b).addEventListener('click', () => {
+    btnIds.forEach((bb, j) => { $(bb).classList.toggle('active', i === j); $(paneIds[j]).style.display = i === j ? '' : 'none'; });
+    onChange(i);
+  }));
+}
+function renderGallery(key, el, size, modalId) {
+  const list = store.get(key); el.innerHTML = '';
+  if (!list.length) { el.innerHTML = '<span class="hint-s">Nothing saved yet.</span>'; return; }
+  list.forEach(item => {
+    const g = document.createElement('div'); g.className = 'g';
+    const im = document.createElement('img'); im.src = item.dataUrl;
+    const x = document.createElement('div'); x.className = 'x'; x.textContent = '×';
+    g.append(im, x);
+    g.addEventListener('click', () => { show(modalId, false); placeImageData(item.dataUrl, item.w, item.h, size); });
+    x.addEventListener('click', e => { e.stopPropagation(); store.set(key, store.get(key).filter(i => i.id !== item.id)); renderGallery(key, el, size, modalId); });
+    el.appendChild(g);
+  });
+}
+
+/* ---------- OCR ---------- */
+let ocrImg = null;
+async function setOcrImage(file) {
+  const c = await fileToCanvas(file, 3000);
+  if (c.width < 1200) {
+    const k = 1200 / c.width, u = document.createElement('canvas');
+    u.width = Math.round(c.width * k); u.height = Math.round(c.height * k);
+    u.getContext('2d').drawImage(c, 0, 0, u.width, u.height); ocrImg = u.toDataURL('image/png');
+  } else ocrImg = c.toDataURL('image/png');
+  $('ocrPreview').src = ocrImg; $('ocrPreview').style.display = ''; $('ocrRun').disabled = false; $('ocrProg').textContent = '';
+}
+$('btnOcr').addEventListener('click', () => { $('ocrColor').value = $('newColor').value; show('ocrModal', true); });
+$('ocrClose').addEventListener('click', () => show('ocrModal', false));
+$('ocrFile').addEventListener('change', async e => { if (e.target.files[0]) { try { await setOcrImage(e.target.files[0]); } catch (err) { alert(err.message); } } e.target.value = ''; });
+document.addEventListener('paste', async e => {
+  if (!$('ocrModal').classList.contains('show')) return;
+  const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+  if (it) { e.preventDefault(); try { await setOcrImage(it.getAsFile()); } catch (err) { alert(err.message); } }
+});
+$('ocrRun').addEventListener('click', async () => {
+  if (!ocrImg) return;
+  $('ocrRun').disabled = true; $('ocrProg').textContent = 'Starting… (first run downloads language data)';
+  try {
+    const res = await Tesseract.recognize(ocrImg, $('ocrLang').value, { logger: m => { if (m.status) $('ocrProg').textContent = m.status + (m.progress ? ' ' + Math.round(m.progress * 100) + '%' : ''); } });
+    $('ocrText').value = res.data.text.trim();
+    $('ocrProg').textContent = $('ocrText').value ? 'Done. Check the text and fix any mistakes.' : 'No text found. Try a clearer image or another language.';
+  } catch (err) { console.error(err); $('ocrProg').textContent = 'Failed: ' + err.message; }
+  $('ocrRun').disabled = false;
+});
+$('ocrCopy').addEventListener('click', () => { navigator.clipboard?.writeText($('ocrText').value); $('ocrProg').textContent = 'Copied.'; });
+$('ocrPlace').addEventListener('click', () => {
+  const text = $('ocrText').value.trim();
+  if (!text) { alert('There is no text to place yet.'); return; }
+  const opts = { type: 'text', text, size: Math.max(6, +$('ocrSize').value || 14), color: $('ocrColor').value, font: { fam: $('ocrFont').value, bold: false, italic: false } };
+  show('ocrModal', false); needPdf(() => setPending(opts));
+});
+
+/* ---------- Stamp Maker ---------- */
+const PRESETS = [['APPROVED', '#16a34a'], ['PAID', '#16a34a'], ['RECEIVED', '#1d4ed8'], ['REVIEWED', '#1d4ed8'], ['DRAFT', '#6b7280'], ['CONFIDENTIAL', '#dc2626'], ['REJECTED', '#dc2626'], ['URGENT', '#ea580c'], ['COPY', '#6b7280'], ['VERIFIED', '#16a34a']];
+PRESETS.forEach(([t, c]) => {
+  const b = document.createElement('button'); b.textContent = t; b.style.color = c;
+  b.addEventListener('click', () => { $('stMain').value = t; $('stColor').value = c; updateStampPreview(); });
+  $('stPresets').appendChild(b);
+});
+const STAMP_FONTS = { sans: { f: 'Montserrat', w: 800 }, serif: { f: 'Playfair Display', w: 800 }, type: { f: 'Special Elite', w: 400 }, hind: { f: 'Hind', w: 700 },
+  mukta: { f: 'Mukta', w: 700, lz: 1, wg: '700' }, oswald: { f: 'Oswald', w: 700, lz: 1, wg: '700' }, bebas: { f: 'Bebas Neue', w: 400, lz: 1 }, cinzel: { f: 'Cinzel', w: 700, lz: 1, wg: '700' }, anton: { f: 'Anton', w: 400, lz: 1 } };
+let stShape = 'circle', stTab = 0, stampDraft = null, stampImgCanvas = null;
+
+function arcText(x, text, cx, cy, r, mid, bottom, sp) {
+  const chars = [...text], widths = chars.map(c => x.measureText(c).width);
+  const total = widths.reduce((a, b) => a + b, 0) + (chars.length - 1) * sp;
+  let a = bottom ? mid + total / (2 * r) : mid - total / (2 * r);
+  chars.forEach((c, i) => {
+    const w = widths[i], half = w / (2 * r);
+    const ang = bottom ? a - half : a + half;
+    x.save(); x.translate(cx + r * Math.cos(ang), cy + r * Math.sin(ang));
+    x.rotate(bottom ? ang - Math.PI / 2 : ang + Math.PI / 2); x.fillText(c, 0, 0); x.restore();
+    a += bottom ? -(w + sp) / r : (w + sp) / r;
+  });
+}
+function rubberLook(C) {
+  const x = C.getContext('2d'); x.globalCompositeOperation = 'destination-out';
+  let s = 12345; const rnd = () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  for (let i = 0; i < C.width * C.height / 80; i++) { x.globalAlpha = 0.35 + rnd() * 0.65; x.beginPath(); x.arc(rnd() * C.width, rnd() * C.height, rnd() * 2.2 + 0.4, 0, 7); x.fill(); }
+  for (let i = 0; i < 20; i++) { x.globalAlpha = 0.2 + rnd() * 0.3; x.beginPath(); x.arc(rnd() * C.width, rnd() * C.height, 10 + rnd() * 30, 0, 7); x.fill(); }
+  x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
+}
+function starPath(x, cx, cy, R, rot = -Math.PI / 2) {
+  x.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = rot + i * Math.PI / 5, rr = i % 2 ? R * 0.4 : R, px = cx + rr * Math.cos(a), py = cy + rr * Math.sin(a);
+    i ? x.lineTo(px, py) : x.moveTo(px, py);
+  }
+  x.closePath();
+}
+async function renderStampCanvas(o) {
+  const F = STAMP_FONTS[o.font], th = { thin: 6, mid: 11, thick: 18 }[o.thick];
+  const main = o.main.trim(), top = o.top.trim(), bot = o.bot.trim();
+  const dateStr = o.date ? new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+  if (F.lz) await loadFam(F.f, F.wg);
+  try { await document.fonts.load(`${F.w} 60px "${F.f}"`, (main + top + bot + dateStr) || 'A'); } catch (e) {}
+  const [W, H] = { circle: [640, 640], seal: [640, 640], cstar: [640, 640], oval: [820, 520], box: [820, 420], round: [820, 420] }[o.shape];
+  const C = document.createElement('canvas'); C.width = W; C.height = H;
+  const x = C.getContext('2d'); x.fillStyle = o.color; x.strokeStyle = o.color; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+  const font = px => `${F.w} ${px}px "${F.f}", Arial, sans-serif`;
+  const fit = (text, maxW, start, min = 18) => { let px = start; x.font = font(px); while (px > min && x.measureText(text).width > maxW) { px -= 4; x.font = font(px); } return px; };
+  const cx = W / 2, cy = H / 2;
+  if (o.shape === 'circle' || o.shape === 'seal' || o.shape === 'cstar') {
+    let R = W / 2 - 14;
+    if (o.shape === 'seal') {
+      const n = 40, r1 = R, r2 = R - 20; x.lineWidth = th * 0.55; x.beginPath();
+      for (let i = 0; i < n * 2; i++) { const ang = i * Math.PI / n, rr = i % 2 ? r2 : r1; const px = cx + rr * Math.cos(ang), py = cy + rr * Math.sin(ang); i ? x.lineTo(px, py) : x.moveTo(px, py); }
+      x.closePath(); x.stroke(); R = r2 - 4;
+    } else { x.lineWidth = th; x.beginPath(); x.arc(cx, cy, R - th / 2, 0, 7); x.stroke(); }
+    const ri = R - th - 24; x.lineWidth = Math.max(3, th * 0.4); x.beginPath(); x.arc(cx, cy, ri, 0, 7); x.stroke();
+    const fa = 46, rt = ri - fa * 0.8; x.font = font(fa);
+    if (o.shape === 'cstar') {
+      const tA = main || top, bA = bot || (main ? top : '');
+      if (tA) { const f2 = fit(tA, rt * 2.2, fa, 22); x.font = font(f2); arcText(x, tA, cx, cy, rt, -Math.PI / 2, false, f2 * 0.12); }
+      if (bA) { const f2 = fit(bA, rt * 2.2, fa, 22); x.font = font(f2); arcText(x, bA, cx, cy, rt, Math.PI / 2, true, f2 * 0.12); }
+      const sr0 = rt - fa - 18, sr = dateStr ? sr0 * 0.62 : sr0, scy = dateStr ? cy - 26 : cy;
+      starPath(x, cx, scy, sr); x.fill();
+      starPath(x, cx - rt, cy, 20); x.fill(); starPath(x, cx + rt, cy, 20); x.fill();
+      if (dateStr) { x.font = font(34); x.fillText(dateStr, cx, scy + sr * 0.81 + 34); }
+    } else {
+    if (top) { const f2 = fit(top, rt * 2.2, fa, 22); x.font = font(f2); arcText(x, top, cx, cy, rt, -Math.PI / 2, false, f2 * 0.12); }
+    if (bot) { const f2 = fit(bot, rt * 2.2, fa, 22); x.font = font(f2); arcText(x, bot, cx, cy, rt, Math.PI / 2, true, f2 * 0.12); }
+    const inner = (rt - fa * 1.05) * 1.75;
+    if (main) { const mp = fit(main, inner, 130, 24); x.font = font(mp); x.fillText(main, cx, cy - (dateStr ? 16 : 0)); if (dateStr) { x.font = font(34); x.fillText(dateStr, cx, cy + mp * 0.5 + 14); } }
+    else if (dateStr) { x.font = font(44); x.fillText(dateStr, cx, cy); }
+    }
+  } else {
+    const inset = th / 2 + 8;
+    x.lineWidth = th;
+    const outline = (ix, iy, iw, ih, r, ell) => {
+      x.beginPath();
+      if (ell) x.ellipse(cx, cy, iw / 2, ih / 2, 0, 0, 7);
+      else if (r) { x.moveTo(ix + r, iy); x.arcTo(ix + iw, iy, ix + iw, iy + ih, r); x.arcTo(ix + iw, iy + ih, ix, iy + ih, r); x.arcTo(ix, iy + ih, ix, iy, r); x.arcTo(ix, iy, ix + iw, iy, r); x.closePath(); }
+      else x.rect(ix, iy, iw, ih);
+      x.stroke();
+    };
+    const ell = o.shape === 'oval', rad = o.shape === 'round' ? 70 : 0, gap = th + 14;
+    outline(inset, inset, W - 2 * inset, H - 2 * inset, rad, ell);
+    x.lineWidth = Math.max(3, th * 0.4);
+    outline(inset + gap, inset + gap, W - 2 * (inset + gap), H - 2 * (inset + gap), rad ? rad - 20 : 0, ell);
+    const maxW = ell ? W * 0.62 : W - 2 * (inset + gap) - 60;
+    const lines = [];
+    if (top) lines.push({ t: top, px: fit(top, maxW, 46, 20) });
+    if (main) lines.push({ t: main, px: fit(main, maxW, 120, 24), big: true });
+    if (dateStr) lines.push({ t: dateStr, px: 36 });
+    if (bot) lines.push({ t: bot, px: fit(bot, maxW, 46, 20) });
+    const total = lines.reduce((a, l) => a + l.px * 1.25, 0); let y = cy - total / 2;
+    lines.forEach(l => { x.font = font(l.px); x.fillText(l.t, cx, y + l.px * 0.625); y += l.px * 1.25; });
+  }
+  if (o.look === 'rubber') rubberLook(C);
+  return trimCanvas(rotateCanvas(C, o.tilt), 6);
+}
+function stampSettings() {
+  return { shape: stShape, main: $('stMain').value, top: $('stTop').value, bot: $('stBot').value, date: $('stDate').checked, color: $('stColor').value, font: $('stFont').value, thick: $('stThick').value, tilt: +$('stTilt').value || 0, look: $('stLook').value };
+}
+async function updateStampPreview() {
+  let c = null;
+  if (stTab === 0) { const s = stampSettings(); if (s.main.trim() || s.top.trim() || s.bot.trim() || s.date) c = await renderStampCanvas(s); }
+  else c = stampImgCanvas;
+  if (!c) { stampDraft = null; $('stPreview').removeAttribute('src'); return; }
+  stampDraft = { dataUrl: c.toDataURL('image/png'), w: c.width, h: c.height };
+  $('stPreview').src = stampDraft.dataUrl;
+}
+['stMain', 'stTop', 'stBot', 'stColor', 'stFont', 'stThick', 'stTilt', 'stLook', 'stDate'].forEach(id => $(id).addEventListener('input', updateStampPreview));
+$('stShapes').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  stShape = b.dataset.shape; [...$('stShapes').children].forEach(x => x.classList.toggle('active', x === b));
+  $('stHint').style.display = stShape === 'cstar' ? '' : 'none'; updateStampPreview();
+});
+wireTabs(['stTabText', 'stTabImg'], ['stPaneText', 'stPaneImg'], i => { stTab = i; updateStampPreview(); });
+async function loadStampImage() {
+  const f = $('stFile').files[0]; if (!f) return;
+  try {
+    let c = await fileToCanvas(f, 1200, $('stPaper').checked);
+    if ($('stRecolor').checked) c = recolor(c, $('stInk').value);
+    stampImgCanvas = trimCanvas(c, 2); updateStampPreview();
+  } catch (err) { alert(err.message); }
+}
+['stFile', 'stPaper', 'stRecolor', 'stInk'].forEach(id => $(id).addEventListener('change', loadStampImage));
+function openStamp() {
+  const s = store.obj('pep_stamp_settings');
+  if (s) {
+    stShape = s.shape || 'circle'; [...$('stShapes').children].forEach(x => x.classList.toggle('active', x.dataset.shape === stShape)); $('stHint').style.display = stShape === 'cstar' ? '' : 'none';
+    $('stMain').value = s.main ?? ''; $('stTop').value = s.top ?? ''; $('stBot').value = s.bot ?? ''; $('stDate').checked = !!s.date;
+    $('stColor').value = s.color || '#1d4ed8'; $('stFont').value = s.font || 'sans'; $('stThick').value = s.thick || 'mid'; $('stTilt').value = s.tilt || 0; $('stLook').value = s.look || 'clean';
+  }
+  renderGallery('pep_stamps', $('stampGallery'), 140, 'stampModal'); show('stampModal', true); updateStampPreview();
+}
+$('btnStamp').addEventListener('click', openStamp);
+$('stClose').addEventListener('click', () => show('stampModal', false));
+$('stRemember').addEventListener('click', () => { try { localStorage.setItem('pep_stamp_settings', JSON.stringify(stampSettings())); toast('Settings saved for next time.'); } catch (e) { alert('Could not save settings.'); } });
+$('stSave').addEventListener('click', () => {
+  if (!stampDraft) { alert('Create a stamp first.'); return; }
+  const list = store.get('pep_stamps'); list.push({ id: Date.now(), ...stampDraft });
+  if (store.set('pep_stamps', list)) { renderGallery('pep_stamps', $('stampGallery'), 140, 'stampModal'); toast('Saved to My stamps.'); }
+});
+$('stPlace').addEventListener('click', () => {
+  if (!stampDraft) { alert('Create a stamp first.'); return; }
+  show('stampModal', false); placeImageData(stampDraft.dataUrl, stampDraft.w, stampDraft.h, 140);
+});
+
+/* ---------- Signature Studio ---------- */
+const pad = $('sgPad'), pctx = pad.getContext('2d');
+let strokes = [], curStroke = null, sgTab = 0, sgImgCanvas = null, sgFontKey = 'DancingScript';
+function padPos(e) { const r = pad.getBoundingClientRect(); return { x: (e.clientX - r.left) * pad.width / r.width, y: (e.clientY - r.top) * pad.height / r.height }; }
+function redrawPad() {
+  pctx.clearRect(0, 0, pad.width, pad.height); pctx.lineCap = 'round'; pctx.lineJoin = 'round';
+  strokes.forEach(s => {
+    pctx.strokeStyle = s.color; pctx.fillStyle = s.color; pctx.lineWidth = s.w * 2; const p = s.pts;
+    if (p.length === 1) { pctx.beginPath(); pctx.arc(p[0].x, p[0].y, s.w, 0, 7); pctx.fill(); return; }
+    pctx.beginPath(); pctx.moveTo(p[0].x, p[0].y);
+    for (let i = 1; i < p.length - 1; i++) pctx.quadraticCurveTo(p[i].x, p[i].y, (p[i].x + p[i + 1].x) / 2, (p[i].y + p[i + 1].y) / 2);
+    pctx.lineTo(p[p.length - 1].x, p[p.length - 1].y); pctx.stroke();
+  });
+}
+pad.addEventListener('pointerdown', e => { pad.setPointerCapture(e.pointerId); curStroke = { pts: [padPos(e)], color: $('sgColor').value, w: +$('sgWidth').value || 4 }; strokes.push(curStroke); redrawPad(); });
+pad.addEventListener('pointermove', e => { if (curStroke) { curStroke.pts.push(padPos(e)); redrawPad(); } });
+['pointerup', 'pointercancel'].forEach(ev => pad.addEventListener(ev, () => { curStroke = null; }));
+$('sgUndo').addEventListener('click', () => { strokes.pop(); redrawPad(); });
+$('sgClear').addEventListener('click', () => { strokes = []; redrawPad(); });
+
+function renderSigFonts() {
+  const g = $('sgFonts'); g.innerHTML = '';
+  const txt = $('sgText').value || 'Your Name', col = $('sgColor2').value;
+  HW.filter(h => h[3]).forEach(([k, fam, lb, sg, lazy]) => {
+    if (lazy) loadFam(fam);
+    const d = document.createElement('div'); d.className = 'fcard' + (k === sgFontKey ? ' sel' : '');
+    d.innerHTML = '<div class="pv"></div><small></small>';
+    const pv = d.querySelector('.pv'); pv.textContent = txt; pv.style.fontFamily = `"${fam}", cursive`; pv.style.color = col;
+    d.querySelector('small').textContent = fam;
+    d.addEventListener('click', () => { sgFontKey = k; renderSigFonts(); });
+    g.appendChild(d);
+  });
+}
+['sgText', 'sgColor2'].forEach(id => $(id).addEventListener('input', renderSigFonts));
+async function typedSigCanvas() {
+  const t = $('sgText').value.trim(); if (!t) return null;
+  const fam = FONTS[sgFontKey].fam, px = 140, fs = `${px}px "${fam}", cursive`;
+  await ensureFont({ fam: sgFontKey });
+  try { await document.fonts.load(fs, t); } catch (e) {}
+  const c = document.createElement('canvas'), x = c.getContext('2d'); x.font = fs;
+  c.width = Math.ceil(x.measureText(t).width + 100); c.height = Math.ceil(px * 2);
+  x.font = fs; x.fillStyle = $('sgColor2').value; x.textBaseline = 'alphabetic'; x.fillText(t, 50, px * 1.3);
+  return trimCanvas(c);
+}
+async function loadSigImage() {
+  const f = $('sgFile').files[0]; if (!f) return;
+  try {
+    let c = await fileToCanvas(f, 1200, $('sgPaper').checked);
+    if ($('sgRecolor').checked) c = recolor(c, $('sgInk').value);
+    sgImgCanvas = trimCanvas(c, 2); $('sgPreview').src = sgImgCanvas.toDataURL('image/png');
+  } catch (err) { alert(err.message); }
+}
+['sgFile', 'sgPaper', 'sgRecolor', 'sgInk'].forEach(id => $(id).addEventListener('change', loadSigImage));
+wireTabs(['sgTabType', 'sgTabDraw', 'sgTabImg'], ['sgPaneType', 'sgPaneDraw', 'sgPaneImg'], i => { sgTab = i; });
+async function getSignature() {
+  if (sgTab === 0) { const c = await typedSigCanvas(); if (!c) { alert('Type your name first.'); return null; } return c; }
+  if (sgTab === 1) {
+    if (!strokes.length) { alert('Draw your signature first.'); return null; }
+    const t = document.createElement('canvas'); t.width = pad.width; t.height = pad.height; t.getContext('2d').drawImage(pad, 0, 0); return trimCanvas(t);
+  }
+  if (!sgImgCanvas) { alert('Upload an image of your signature first.'); return null; }
+  return sgImgCanvas;
+}
+function openSign() { renderGallery('pep_sigs', $('signGallery'), 120, 'signModal'); renderSigFonts(); show('signModal', true); }
+$('btnSign').addEventListener('click', openSign);
+$('sgClose').addEventListener('click', () => show('signModal', false));
+$('sgSave').addEventListener('click', async () => {
+  const c = await getSignature(); if (!c) return;
+  const list = store.get('pep_sigs'); list.push({ id: Date.now(), dataUrl: c.toDataURL('image/png'), w: c.width, h: c.height });
+  if (store.set('pep_sigs', list)) { renderGallery('pep_sigs', $('signGallery'), 120, 'signModal'); toast('Saved to My signatures.'); }
+});
+$('sgPlace').addEventListener('click', async () => {
+  const c = await getSignature(); if (!c) return;
+  show('signModal', false); placeImageData(c.toDataURL('image/png'), c.width, c.height, 120);
+});
+
+/* ---------- Text pieces: shared wiring ---------- */
+function wireTextRec(el, rec) {
+  el.addEventListener('focus', () => setActive(rec));
+  el.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); el.blur(); } });
+  el.addEventListener('input', () => { rec.newStr = el.textContent; refreshRec(rec); updateCount(); });
+  el.addEventListener('paste', ev => {
+    ev.preventDefault();
+    document.execCommand('insertText', false, (ev.clipboardData || window.clipboardData).getData('text').replace(/\s+/g, ' '));
+  });
+}
+
+/* ---------- Colour sampling (background + ink of a box on the page image) ---------- */
+const med = a => { a.sort((x, y) => x - y); return a[a.length >> 1]; };
+function sampleBoxInfo(ctx, x0, y0, x1, y1, wantInk) {
+  const cw = ctx.canvas.width, ch = ctx.canvas.height;
+  const rx = Math.max(0, Math.floor(x0) - 4), ry = Math.max(0, Math.floor(y0) - 4);
+  const w = Math.min(cw, Math.ceil(x1) + 4) - rx, h = Math.min(ch, Math.ceil(y1) + 4) - ry;
+  if (w < 1 || h < 1) return { bg: [255, 255, 255], ink: null };
+  const d = ctx.getImageData(rx, ry, w, h).data, R = [], G = [], B = [], inner = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const gx = rx + x, gy = ry + y, i = (y * w + x) * 4;
+    if (gx >= x0 && gx <= x1 && gy >= y0 && gy <= y1) inner.push(i); else { R.push(d[i]); G.push(d[i + 1]); B.push(d[i + 2]); }
+  }
+  const bg = R.length ? [med(R), med(G), med(B)] : [255, 255, 255];
+  let ink = null;
+  if (wantInk && inner.length) {
+    const ds = inner.map(i => { const a = d[i] - bg[0], b = d[i + 1] - bg[1], c = d[i + 2] - bg[2]; return a * a + b * b + c * c; });
+    const th = [...ds].sort((a, b) => b - a)[Math.max(1, Math.floor(inner.length * 0.1)) - 1];
+    if (th > 3600) {
+      let r = 0, g = 0, b = 0, n = 0;
+      inner.forEach((i, j) => { if (ds[j] >= th) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; } });
+      ink = '#' + [r, g, b].map(v => Math.round(v / n).toString(16).padStart(2, '0')).join('');
+    }
+  }
+  return { bg, ink };
+}
+
+/* ---------- Highlighter & eraser ---------- */
+function clearTool() {
+  tool = null;
+  $('btnHl').classList.remove('active'); $('btnErase').classList.remove('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('toolmode'));
+}
+function setTool(t) {
+  if (!pdfDoc) { toast('Open a PDF first.'); return; }
+  if (tool === t) { clearTool(); updateCount(); return; }
+  setAddMode(false); setPending(null);
+  tool = t;
+  $('btnHl').classList.toggle('active', t === 'hl'); $('btnErase').classList.toggle('active', t === 'erase');
+  document.querySelectorAll('.page').forEach(p => p.classList.add('toolmode'));
+  setStatus(t === 'hl' ? 'Highlighter: drag over text, or click a line of text. Esc to stop.' : 'Eraser: drag a box over anything, or click a line of text. Esc to stop.');
+}
+$('btnHl').addEventListener('click', () => setTool('hl'));
+$('btnErase').addEventListener('click', () => setTool('erase'));
+$('hlColor').addEventListener('input', () => { if (tool !== 'hl') setTool('hl'); });
+
+function removeMark(rec) {
+  rec.el.remove(); (rec.blocked || []).forEach(r => r.el.style.pointerEvents = '');
+  marks = marks.filter(m => m !== rec); markStack = markStack.filter(m => m !== rec); updateCount();
+}
+function createMark(wrap, ctx, type, l, t, w, h) {
+  const el = document.createElement('div'); el.className = 'mark ' + type;
+  Object.assign(el.style, { left: l + 'px', top: t + 'px', width: w + 'px', height: h + 'px' });
+  const rec = { type, page: +wrap.dataset.pageIndex, el, ptHeight: +wrap.dataset.ptHeight };
+  if (type === 'hl') { rec.color = $('hlColor').value; el.style.background = rec.color; }
+  else {
+    rec.bg = sampleBoxInfo(ctx, l, t, l + w, t + h, false).bg; el.style.background = `rgb(${rec.bg.join(',')})`;
+    // text hidden under the eraser should not be editable by accident
+    rec.blocked = edits.filter(r => r.page === rec.page && (cx => cx >= l && cx <= l + w)(r.el.offsetLeft + r.el.offsetWidth / 2) && (cy => cy >= t && cy <= t + h)(r.el.offsetTop + r.el.offsetHeight / 2));
+    rec.blocked.forEach(r => r.el.style.pointerEvents = 'none');
+  }
+  const x = document.createElement('div'); x.className = 'x'; x.textContent = '×'; x.title = 'Remove';
+  x.addEventListener('pointerdown', ev => ev.stopPropagation());
+  x.addEventListener('click', ev => { ev.stopPropagation(); removeMark(rec); });
+  el.appendChild(x); wrap.appendChild(el); marks.push(rec); markStack.push(rec); updateCount();
+}
+function wireMarkDrawing(wrap, ctx) {
+  wrap.addEventListener('pointerdown', e => {
+    if (!tool || e.button !== 0) return;
+    e.preventDefault();
+    const t = tool, box = wrap.getBoundingClientRect(), sx = e.clientX - box.left, sy = e.clientY - box.top;
+    const g = document.createElement('div'); g.className = 'mark ' + t + ' drawing';
+    if (t === 'hl') g.style.background = $('hlColor').value;
+    wrap.appendChild(g); wrap.setPointerCapture(e.pointerId);
+    let cx = sx, cy = sy;
+    const draw = () => Object.assign(g.style, { left: Math.min(sx, cx) + 'px', top: Math.min(sy, cy) + 'px', width: Math.abs(cx - sx) + 'px', height: Math.abs(cy - sy) + 'px' });
+    const mv = ev => { cx = Math.max(0, Math.min(wrap.clientWidth, ev.clientX - box.left)); cy = Math.max(0, Math.min(wrap.clientHeight, ev.clientY - box.top)); draw(); };
+    const up = () => {
+      wrap.removeEventListener('pointermove', mv); wrap.removeEventListener('pointerup', up); wrap.removeEventListener('pointercancel', up);
+      g.remove();
+      let l = Math.min(sx, cx), tp = Math.min(sy, cy), w = Math.abs(cx - sx), h = Math.abs(cy - sy);
+      if (w < 4 && h < 4) { // a simple click: take the line of text under the pointer
+        const hit = [...wrap.querySelectorAll('.t:not(.new)')].find(el => sx >= el.offsetLeft && sx <= el.offsetLeft + el.offsetWidth && sy >= el.offsetTop && sy <= el.offsetTop + el.offsetHeight);
+        if (!hit) return;
+        l = hit.offsetLeft; tp = hit.offsetTop; w = hit.offsetWidth; h = hit.offsetHeight;
+      }
+      createMark(wrap, ctx, t, l, tp, w, h);
+    };
+    wrap.addEventListener('pointermove', mv); wrap.addEventListener('pointerup', up); wrap.addEventListener('pointercancel', up);
+    draw();
+  });
+}
+document.addEventListener('keydown', e => {
+  if (!((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z')) return;
+  const a = document.activeElement;
+  if (a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return;
+  const m = markStack[markStack.length - 1]; if (m) { e.preventDefault(); removeMark(m); }
+});
+
+/* ---------- Page colour ---------- */
+function applyTint(wrap) {
+  const t = tints[wrap.dataset.pageIndex]; let ov = wrap.querySelector('.tint');
+  if (!t) { if (ov) ov.remove(); return; }
+  if (!ov) { ov = document.createElement('div'); ov.className = 'tint'; wrap.appendChild(ov); }
+  ov.style.background = t.color; ov.style.opacity = t.op;
+}
+[['White', '#ffffff'], ['Cream', '#fdf3d6'], ['Yellow', '#fff59d'], ['Peach', '#ffd9c2'], ['Pink', '#ffd6e7'], ['Lavender', '#e4d9ff'], ['Sky', '#cfe8ff'], ['Mint', '#d3f5df'], ['Grey', '#d9d9d9'], ['Sepia', '#f0dfc0']].forEach(([n, c]) => {
+  const b = document.createElement('button'); b.textContent = n; b.style.background = c;
+  b.addEventListener('click', () => { $('bgColor').value = c; }); $('bgPresets').appendChild(b);
+});
+$('bgOp').addEventListener('input', () => { $('bgOpV').textContent = $('bgOp').value + '%'; });
+$('btnBg').addEventListener('click', () => needPdf(() => show('bgModal', true)));
+$('bgClose').addEventListener('click', () => show('bgModal', false));
+function bgTargets() {
+  const n = pdfDoc.numPages, txt = $('bgPages').value.trim();
+  return txt ? [...new Set(parseGroups(txt, n).flat())] : Array.from({ length: n }, (_, i) => i);
+}
+function refreshTints() { document.querySelectorAll('.page').forEach(applyTint); updateCount(); }
+$('bgApply').addEventListener('click', () => {
+  try {
+    const idx = bgTargets(), col = $('bgColor').value, op = +$('bgOp').value / 100;
+    idx.forEach(i => { if (col.toLowerCase() === '#ffffff') delete tints[i]; else tints[i] = { color: col, op }; });
+    refreshTints(); show('bgModal', false); toast('Page colour applied to ' + idx.length + ' page(s).');
+  } catch (err) { alert(err.message); }
+});
+$('bgRemove').addEventListener('click', () => {
+  try { bgTargets().forEach(i => delete tints[i]); refreshTints(); toast('Page colour removed.'); } catch (err) { alert(err.message); }
+});
+
+/* ---------- Handwriting Studio ---------- */
+let hwFont = 'Caveat';
+[['Blue pen', '#1d3f9e'], ['Black', '#111111'], ['Navy', '#0b3d91'], ['Red', '#c0392b'], ['Green', '#1b6b3a'], ['Purple', '#6d28d9'], ['Pencil', '#4b5563']].forEach(([n, c]) => {
+  const b = document.createElement('button'); b.textContent = n; b.style.color = c;
+  b.addEventListener('click', () => { $('hwColor').value = c; renderHwFonts(); }); $('hwInks').appendChild(b);
+});
+function renderHwFonts() {
+  const g = $('hwFonts'); g.innerHTML = '';
+  const txt = $('hwSample').value || 'Sample', col = $('hwColor').value;
+  HW.forEach(([k, fam, label, sig, lazy]) => {
+    if (lazy) loadFam(fam);
+    const d = document.createElement('div'); d.className = 'fcard' + (k === hwFont ? ' sel' : '');
+    d.innerHTML = '<div class="pv"></div><small></small>';
+    const pv = d.querySelector('.pv'); pv.textContent = txt; pv.style.fontFamily = `"${fam}", cursive`; pv.style.color = col;
+    d.querySelector('small').textContent = label;
+    d.addEventListener('click', () => { hwFont = k; renderHwFonts(); });
+    g.appendChild(d);
+  });
+}
+['hwSample', 'hwColor'].forEach(id => $(id).addEventListener('input', renderHwFonts));
+function openHw() { needPdf(() => { renderHwFonts(); show('hwModal', true); }); }
+$('hwClose').addEventListener('click', () => show('hwModal', false));
+$('hwApply').addEventListener('click', () => {
+  const fam = hwFont, ink = $('hwColor').value, scope = document.querySelector('input[name=hwScope]:checked').value;
+  let recs = [], news = [];
+  try {
+    if (scope === 'sel') {
+      if (!activeRec || !activeRec.el.isConnected) { alert('Click a text on the PDF first, then open this window again.'); return; }
+      if (activeRec.isNew) news = [activeRec]; else recs = [activeRec];
+    } else {
+      let ok = null;
+      if (scope === 'pages') { ok = new Set(parseGroups($('hwPages').value, pdfDoc.numPages).flat()); if (!ok.size) throw new Error('Enter page numbers, for example 1-2.'); }
+      recs = edits.filter(r => !ok || ok.has(r.page)); news = newTexts.filter(r => !ok || ok.has(r.page));
+    }
+  } catch (err) { alert(err.message); return; }
+  recs.forEach(r => { r.font = { fam, bold: false, italic: false }; r.ink = ink; applyFontStyle(r.el, r.font); refreshRec(r); });
+  news.forEach(r => { r.font = { fam, bold: false, italic: false }; r.color = ink; applyFontStyle(r.el, r.font); r.el.style.color = ink; });
+  $('fontSel').value = fam; $('newColor').value = ink;
+  show('hwModal', false); updateCount();
+  toast('Handwriting applied to ' + (recs.length + news.length) + ' text(s). Edit any text to see it.');
+});
+$('hwRestore').addEventListener('click', () => {
+  let n = 0;
+  edits.forEach(r => { if (FONTS[r.font.fam].hw) { r.font = { ...r.fontOrig }; r.ink = null; applyFontStyle(r.el, r.font); refreshRec(r); n++; } });
+  updateCount(); toast(n + ' text(s) restored to their original font.');
+});
+
+/* ---------- Bill / image -> editable PDF ---------- */
+let billFiles = [];
+function renderBillThumbs() {
+  const g = $('billThumbs'); g.innerHTML = '';
+  if (!billFiles.length) g.innerHTML = '<span class="hint-s">No images yet.</span>';
+  billFiles.forEach((f, i) => {
+    const d = document.createElement('div'); d.className = 'g';
+    const im = document.createElement('img'); im.src = URL.createObjectURL(f); im.onload = () => URL.revokeObjectURL(im.src);
+    const x = document.createElement('div'); x.className = 'x'; x.textContent = '×';
+    x.addEventListener('click', e => { e.stopPropagation(); billFiles.splice(i, 1); renderBillThumbs(); });
+    d.append(im, x); g.appendChild(d);
+  });
+  $('billGo').disabled = !billFiles.length;
+}
+function openBill() { renderBillThumbs(); show('billModal', true); }
+$('btnBill').addEventListener('click', openBill);
+$('billClose').addEventListener('click', () => show('billModal', false));
+$('billFile').addEventListener('change', e => { billFiles.push(...[...e.target.files].filter(f => /^image\//.test(f.type))); e.target.value = ''; renderBillThumbs(); });
+document.addEventListener('paste', e => {
+  if (!$('billModal').classList.contains('show')) return;
+  const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+  if (it) { e.preventDefault(); billFiles.push(it.getAsFile()); renderBillThumbs(); }
+});
+function ocrWords(data) {
+  if (data.words && data.words.length) return data.words;
+  const out = [];
+  (data.blocks || []).forEach(b => (b.paragraphs || []).forEach(p => (p.lines || []).forEach(l => (l.words || []).forEach(w => out.push(w)))));
+  return out;
+}
+// group OCR words into lines, then split each line into pieces wherever there is a wide gap (columns of a bill)
+function ocrSegments(words, k) {
+  const ws = words.filter(w => w && w.text && w.text.trim() && w.bbox && (w.confidence == null || w.confidence > 35))
+    .map(w => ({ t: w.text.trim(), x0: w.bbox.x0 * k, y0: w.bbox.y0 * k, x1: w.bbox.x1 * k, y1: w.bbox.y1 * k }))
+    .filter(w => w.x1 > w.x0 && w.y1 > w.y0);
+  ws.sort((a, b) => (a.y0 + a.y1) - (b.y0 + b.y1));
+  const lines = [];
+  for (const w of ws) {
+    const cy = (w.y0 + w.y1) / 2, h = w.y1 - w.y0, L = lines[lines.length - 1];
+    if (L && Math.abs(L.cy - cy) < Math.max(L.h, h) * 0.45) { L.w.push(w); L.cy = (L.cy * (L.w.length - 1) + cy) / L.w.length; L.h = Math.max(L.h, h); }
+    else lines.push({ cy, h, w: [w] });
+  }
+  const segs = [];
+  for (const L of lines) {
+    L.w.sort((a, b) => a.x0 - b.x0);
+    let cur = null;
+    for (const w of L.w) {
+      if (cur && w.x0 - cur.x1 < L.h * 1.1) { cur.str += ' ' + w.t; cur.x1 = Math.max(cur.x1, w.x1); cur.y0 = Math.min(cur.y0, w.y0); cur.y1 = Math.max(cur.y1, w.y1); }
+      else { cur = { str: w.t, x0: w.x0, y0: w.y0, x1: w.x1, y1: w.y1 }; segs.push(cur); }
+    }
+  }
+  return segs;
+}
+const measCtx = document.createElement('canvas').getContext('2d');
+function addOcrRecs(wrap, ctx, pIdx, segs, pageHpt) {
+  const fnt = { fam: 'Helvetica', bold: false, italic: false };
+  for (const s of segs) {
+    const wPt = s.x1 - s.x0, hPt = s.y1 - s.y0;
+    measCtx.font = `100px ${FONTS.Helvetica.css}`;
+    const w100 = measCtx.measureText(s.str).width, hs = hPt / 0.78;
+    let size = (s.str.length >= 3 && w100 > 0) ? wPt / w100 * 100 : hs;
+    size = Math.min(Math.max(size, hs * 0.75), hs * 1.35);
+    const base = s.y1 - (/[gjpqyQ,;()\[\]{}\/|@$]/.test(s.str) ? size * 0.2 : 0);
+    const left = s.x0 * scale, top = base * scale - size * scale * 0.88;
+    const box = [left - 2, s.y0 * scale - 2, s.x1 * scale + 2, s.y1 * scale + 2];
+    const info = sampleBoxInfo(ctx, box[0], box[1], box[2], box[3], true);
+    const el = document.createElement('div');
+    el.className = 't'; el.contentEditable = 'true'; el.spellcheck = false; el.textContent = s.str;
+    el.style.left = left + 'px'; el.style.top = top + 'px'; el.style.fontSize = (size * scale) + 'px';
+    applyFontStyle(el, fnt);
+    el.style.minWidth = (wPt * scale) + 'px'; el.style.height = (size * scale * 1.15) + 'px';
+    const rec = { page: pIdx, str: s.str, newStr: s.str, x: s.x0, y: pageHpt - base, size, w: wPt, bg: info.bg, el, ink: null, inkOrig: info.ink, ctx, box,
+      cover: { x: s.x0 - 1.5, y: pageHpt - s.y1 - 1.5, w: wPt + 3, h: hPt + 3 }, font: { ...fnt }, fontOrig: { ...fnt } };
+    wireTextRec(el, rec); edits.push(rec); wrap.appendChild(el);
+  }
+}
+$('billGo').addEventListener('click', async () => {
+  if (!billFiles.length) return;
+  const doOcr = $('billOcr').checked, lang = $('billLang').value;
+  $('billGo').disabled = true; loading(true, 'Creating PDF…');
+  try {
+    const { PDFDocument } = PDFLib, out = await PDFDocument.create(), layers = {};
+    for (let i = 0; i < billFiles.length; i++) {
+      const tag = 'Image ' + (i + 1) + ' of ' + billFiles.length;
+      loading(true, tag + ': preparing…');
+      const src = await fileToCanvas(billFiles[i], 2600);
+      const c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+      const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height); cx.drawImage(src, 0, 0);
+      const jpg = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
+      const emb = await out.embedJpg(new Uint8Array(await jpg.arrayBuffer()));
+      const pw = 595, ph = c.height * (pw / c.width);
+      out.addPage([pw, ph]).drawImage(emb, { x: 0, y: 0, width: pw, height: ph });
+      if (doOcr) {
+        let oc = c;
+        if (c.width < 1400) { oc = document.createElement('canvas'); oc.width = 1400; oc.height = Math.round(c.height * 1400 / c.width); oc.getContext('2d').drawImage(c, 0, 0, oc.width, oc.height); }
+        const res = await Tesseract.recognize(oc, lang, { logger: m => { if (m.status) loading(true, tag + ': ' + m.status + (m.progress ? ' ' + Math.round(m.progress * 100) + '%' : '')); } });
+        layers[i] = ocrSegments(ocrWords(res.data), pw / oc.width);
+      }
+    }
+    const bytes = await out.save();
+    show('billModal', false); loading(false);
+    const n = Object.values(layers).reduce((a, l) => a + l.length, 0);
+    await openPdfBytes(bytes, 'bill', layers);
+    toast(!doOcr ? 'PDF created.' : n ? 'Done. ' + n + ' pieces of text are editable. Click any text to change it.' : 'PDF created, but no text was found. Try a clearer photo or another language.');
+  } catch (err) { console.error(err); alert('Could not convert: ' + err.message); }
+  loading(false); $('billGo').disabled = !billFiles.length;
+});
+
+/* ---------- Page ranges ---------- */
+function parseGroups(str, n) {
+  const groups = [];
+  for (const part of str.split(',').map(s => s.trim()).filter(Boolean)) {
+    const m = part.match(/^(\d+)\s*(?:-\s*(\d+))?$/);
+    if (!m) throw new Error('Could not read "' + part + '". Use a format like 1-3, 5, 8-10.');
+    const a = +m[1], b = m[2] ? +m[2] : a;
+    if (a < 1 || b < a || b > n) throw new Error('Pages must be between 1 and ' + n + ' ("' + part + '").');
+    const g = []; for (let i = a; i <= b; i++) g.push(i - 1); groups.push(g);
+  }
+  return groups;
+}
+
+/* ---------- Merge & reorder (page level) ---------- */
+let mSrcs = [], mPages = [], dragI = null;
+function renderMergeGrid() {
+  const grid = $('mergeGrid'); grid.innerHTML = '';
+  if (!mPages.length) grid.innerHTML = '<span class="hint-s">No pages yet. Add PDFs or images.</span>';
+  mPages.forEach((m, i) => {
+    const el = document.createElement('div'); el.className = 'mp'; el.draggable = true;
+    el.innerHTML = '<div class="th"><img></div><div class="num"></div><div class="acts"><button class="r" title="Rotate">⟳</button><button class="d" title="Remove">×</button></div>';
+    const im = el.querySelector('img'); im.src = m.thumb; im.style.transform = `rotate(${m.rot}deg)`;
+    el.querySelector('.num').textContent = (i + 1) + '. ' + m.label;
+    el.querySelector('.r').addEventListener('click', e => { e.stopPropagation(); m.rot = (m.rot + 90) % 360; renderMergeGrid(); });
+    el.querySelector('.d').addEventListener('click', e => { e.stopPropagation(); mPages.splice(i, 1); renderMergeGrid(); });
+    el.addEventListener('dragstart', e => { dragI = i; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)); el.classList.add('drag'); });
+    el.addEventListener('dragover', e => { e.preventDefault(); el.classList.add('over'); });
+    el.addEventListener('dragleave', () => el.classList.remove('over'));
+    el.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); if (dragI === null || dragI === i) return; const [mv] = mPages.splice(dragI, 1); mPages.splice(i, 0, mv); dragI = null; renderMergeGrid(); });
+    el.addEventListener('dragend', () => { dragI = null; renderMergeGrid(); });
+    grid.appendChild(el);
+  });
+  $('mergeCount').textContent = mPages.length ? mPages.length + ' pages from ' + mSrcs.length + ' file(s)' : '';
+  $('mergeGo').disabled = $('mergeEdit').disabled = mPages.length < 1;
+}
+async function addMergeBytes(name, kind, bytes) {
+  const si = mSrcs.push({ name, kind, bytes }) - 1;
+  if (kind === 'pdf') {
+    const d = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
+    for (let p = 1; p <= d.numPages; p++) {
+      const pg = await d.getPage(p), vp = pg.getViewport({ scale: 0.35 });
+      const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height;
+      await pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      mPages.push({ src: si, idx: p - 1, thumb: c.toDataURL('image/jpeg', 0.7), rot: 0, label: name + ' · p' + p });
+    }
+  } else {
+    const im = await loadImage(URL.createObjectURL(new Blob([bytes], { type: kind === 'png' ? 'image/png' : 'image/jpeg' })));
+    const k = Math.min(1, 300 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+    c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    mPages.push({ src: si, idx: null, thumb: c.toDataURL('image/jpeg', 0.7), rot: 0, label: name });
+  }
+}
+async function addMergeFiles(files) {
+  loading(true, 'Reading files…');
+  try {
+    for (const f of files) {
+      if (!isPdfFile(f) && !isImgFile(f)) continue;
+      await addMergeBytes(f.name, isPdfFile(f) ? 'pdf' : (isPngFile(f) ? 'png' : 'jpg'), new Uint8Array(await f.arrayBuffer()));
+    }
+  } catch (err) { console.error(err); alert('Could not read a file: ' + err.message); }
+  loading(false); renderMergeGrid();
+}
+function openMerge(files, fresh) {
+  if (fresh) { mSrcs = []; mPages = []; }
+  show('mergeModal', true); renderMergeGrid();
+  if (files.length) addMergeFiles(files);
+}
+$('btnMerge').addEventListener('click', () => openMerge([], false));
+$('mergeClose').addEventListener('click', () => show('mergeModal', false));
+$('mergeClear').addEventListener('click', () => { mSrcs = []; mPages = []; renderMergeGrid(); });
+$('mergeFiles').addEventListener('change', e => { addMergeFiles([...e.target.files]); e.target.value = ''; });
+$('mergeCurrent').addEventListener('click', async () => {
+  if (!pdfDoc) { toast('Open a PDF first, or just add files.'); return; }
+  loading(true, 'Preparing…');
+  try { await addMergeBytes(baseName + '.pdf', 'pdf', await buildEditedPdf()); } catch (err) { alert(err.message); }
+  loading(false); renderMergeGrid();
+});
+async function buildMerged() {
+  const { PDFDocument, degrees } = PDFLib, out = await PDFDocument.create(), cache = {};
+  for (const m of mPages) {
+    const s = mSrcs[m.src];
+    if (s.kind === 'pdf') {
+      if (!cache[m.src]) cache[m.src] = await PDFDocument.load(s.bytes, { ignoreEncryption: true });
+      const [pg] = await out.copyPages(cache[m.src], [m.idx]);
+      if (m.rot) pg.setRotation(degrees(((pg.getRotation().angle + m.rot) % 360 + 360) % 360));
+      out.addPage(pg);
+    } else {
+      const im = s.kind === 'png' ? await out.embedPng(s.bytes) : await out.embedJpg(s.bytes);
+      const k = Math.min(1, 842 / Math.max(im.width, im.height));
+      const pg = out.addPage([im.width * k, im.height * k]); pg.drawImage(im, { x: 0, y: 0, width: im.width * k, height: im.height * k });
+      if (m.rot) pg.setRotation(degrees(m.rot));
+    }
+  }
+  return await out.save();
+}
+$('mergeGo').addEventListener('click', async () => {
+  loading(true, 'Merging…');
+  try { downloadBlob(pdfBlob(await buildMerged()), 'merged.pdf'); } catch (err) { console.error(err); alert('Merge failed: ' + err.message); }
+  loading(false);
+});
+$('mergeEdit').addEventListener('click', async () => {
+  loading(true, 'Merging…');
+  try { const bytes = await buildMerged(); show('mergeModal', false); loading(false); await openPdfBytes(bytes, 'merged'); return; }
+  catch (err) { console.error(err); alert('Merge failed: ' + err.message); }
+  loading(false);
+});
+
+/* ---------- Split ---------- */
+function openSplit() { $('splitInfo').textContent = 'This PDF has ' + pdfDoc.numPages + ' pages.'; show('splitModal', true); }
+$('btnSplit').addEventListener('click', () => { if (pdfDoc) openSplit(); });
+$('splitClose').addEventListener('click', () => show('splitModal', false));
+$('splitGo').addEventListener('click', async () => {
+  loading(true, 'Splitting…');
+  try {
+    const { PDFDocument } = PDFLib;
+    const src = await PDFDocument.load(await buildEditedPdf()), n = src.getPageCount();
+    const mode = document.querySelector('input[name=splitMode]:checked').value;
+    let groups = [];
+    if (mode === 'ranges') {
+      groups = parseGroups($('splitRange').value, n);
+      if (!groups.length) throw new Error('Enter the page ranges, for example 1-3, 5, 8-10.');
+      if ($('splitCombine').checked) groups = [groups.flat()];
+    } else if (mode === 'each') { for (let i = 0; i < n; i++) groups.push([i]); }
+    else { const k = Math.max(1, +$('splitEvery').value || 1); for (let i = 0; i < n; i += k) groups.push(Array.from({ length: Math.min(k, n - i) }, (_, j) => i + j)); }
+    const files = [];
+    for (let gi = 0; gi < groups.length; gi++) {
+      const d = await PDFDocument.create();
+      (await d.copyPages(src, groups[gi])).forEach(p => d.addPage(p));
+      const g = groups[gi], label = g.length === 1 ? 'page-' + (g[0] + 1) : 'pages-' + (g[0] + 1) + '-' + (g[g.length - 1] + 1);
+      files.push({ name: baseName + '-' + (groups.length > 1 ? (gi + 1) + '-' : '') + label + '.pdf', bytes: await d.save() });
+    }
+    if (files.length === 1) downloadBlob(pdfBlob(files[0].bytes), files[0].name);
+    else { const zip = new JSZip(); files.forEach(f => zip.file(f.name, f.bytes)); downloadBlob(await zip.generateAsync({ type: 'blob' }), baseName + '-split.zip'); }
+    show('splitModal', false);
+  } catch (err) { alert(err.message); }
+  loading(false);
+});
+
+/* ---------- Page tools ---------- */
+function openOrg() { $('orgInfo').textContent = 'This PDF has ' + pdfDoc.numPages + ' pages.'; show('orgModal', true); }
+$('btnOrg').addEventListener('click', () => { if (pdfDoc) openOrg(); });
+$('orgClose').addEventListener('click', () => show('orgModal', false));
+async function orgAction(kind) {
+  loading(true, 'Working…');
+  try {
+    const { PDFDocument, degrees } = PDFLib;
+    const doc = await PDFDocument.load(await buildEditedPdf());
+    const n = doc.getPageCount(), txt = $('orgRange').value.trim();
+    const idx = txt ? [...new Set(parseGroups(txt, n).flat())].sort((a, b) => a - b) : Array.from({ length: n }, (_, i) => i);
+    if (kind === 'del') {
+      if (!txt) throw new Error('Enter the pages to delete.');
+      if (idx.length >= n) throw new Error('You cannot delete every page.');
+      [...idx].reverse().forEach(i => doc.removePage(i));
+    } else {
+      const d = kind === 'cw' ? 90 : -90;
+      idx.forEach(i => { const p = doc.getPage(i); p.setRotation(degrees(((p.getRotation().angle + d) % 360 + 360) % 360)); });
+    }
+    await reloadFrom(await doc.save());
+    $('orgInfo').textContent = 'Done. This PDF now has ' + pdfDoc.numPages + ' pages.';
+  } catch (err) { alert(err.message); }
+  loading(false);
+}
+$('orgCW').addEventListener('click', () => orgAction('cw'));
+$('orgCCW').addEventListener('click', () => orgAction('ccw'));
+$('orgDel').addEventListener('click', () => { if (confirm('Delete these pages?')) orgAction('del'); });
+
+/* ---------- Rent agreement & rent receipt templates ---------- */
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const cleanTxt = s => String(s == null ? '' : s).replace(/₹/g, 'Rs. ').replace(/[“”„]/g, '"').replace(/[‘’]/g, "'").replace(/[–—]/g, '-').replace(/…/g, '...').replace(/[ \t\r\f\v]+/g, ' ').trim();
+const num = v => { const n = parseFloat(String(v).replace(/,/g, '')); return isFinite(n) ? n : 0; };
+const dstr = d => d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+const rs = n => 'Rs. ' + Math.round(n).toLocaleString('en-IN') + '/-';
+function inWords(n) {
+  n = Math.floor(n); if (n <= 0) return 'Zero';
+  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const two = x => x < 20 ? a[x] : b[Math.floor(x / 10)] + (x % 10 ? ' ' + a[x % 10] : '');
+  const parts = [], cr = Math.floor(n / 1e7); n %= 1e7;
+  const lk = Math.floor(n / 1e5); n %= 1e5; const th = Math.floor(n / 1e3); n %= 1e3; const hu = Math.floor(n / 100), rest = n % 100;
+  if (cr) parts.push(inWords(cr) + ' Crore'); if (lk) parts.push(two(lk) + ' Lakh'); if (th) parts.push(two(th) + ' Thousand'); if (hu) parts.push(a[hu] + ' Hundred');
+  if (rest) parts.push((parts.length ? 'and ' : '') + two(rest));
+  return parts.join(' ');
+}
+const rsw = n => rs(n) + ' (Rupees ' + inWords(n) + ' Only)';
+function addMonths(d, n) { const r = new Date(d.getTime()), day = r.getDate(); r.setMonth(r.getMonth() + n); if (r.getDate() !== day) r.setDate(0); return r; }
+function wrapLines(font, text, size, maxW) {
+  const out = [];
+  for (const para of String(text).split('\n')) {
+    let cur = '';
+    for (const w of cleanTxt(para).split(' ').filter(Boolean)) {
+      const t = cur ? cur + ' ' + w : w;
+      if (!cur || font.widthOfTextAtSize(t, size) <= maxW) cur = t; else { out.push(cur); cur = w; }
+    }
+    out.push(cur);
+  }
+  return out;
+}
+const RA_IDS = ['ra_city', 'ra_date', 'ra_start', 'ra_months', 'ra_lock', 'ra_notice', 'ra_inc', 'ra_ptype', 'ra_lName', 'ra_lId', 'ra_lAddr', 'ra_tName', 'ra_tId', 'ra_tAddr', 'ra_prop', 'ra_fix', 'ra_rent', 'ra_dep', 'ra_due', 'ra_mode', 'ra_maint', 'ra_stampBy', 'ra_extra', 'ra_w1', 'ra_w2'];
+const RR_IDS = ['rr_style', 'rr_prefix', 'rr_tenant', 'rr_landlord', 'rr_pan', 'rr_lAddr', 'rr_prop', 'rr_amount', 'rr_mode', 'rr_from', 'rr_to', 'rr_day', 'rr_ref', 'rr_stamp'];
+const NO_RESTORE = ['ra_date', 'ra_start', 'rr_from', 'rr_to'];
+function formLoad(ids, key) {
+  const s = store.obj(key);
+  if (s) ids.forEach(id => { if (NO_RESTORE.includes(id) || !(id in s)) return; const el = $(id); if (el.type === 'checkbox') el.checked = !!s[id]; else el.value = s[id]; });
+}
+function formSave(ids, key) {
+  const o = {}; ids.forEach(id => { const el = $(id); o[id] = el.type === 'checkbox' ? el.checked : el.value; });
+  try { localStorage.setItem(key, JSON.stringify(o)); } catch (e) {}
+}
+function readForm(ids) {
+  const o = {}; ids.forEach(id => { const el = $(id); o[id.slice(3)] = el.type === 'checkbox' ? el.checked : el.value.trim(); }); return o;
+}
+function assertLatin(o) {
+  for (const k in o) if (typeof o[k] === 'string' && !isWinAnsi(cleanTxt(o[k]).replace(/\n/g, '')))
+    throw new Error('One of the fields contains characters (for example Hindi) that cannot go into the template text. Type it in English here, then use Add Text or Handwriting in the editor for Hindi.');
+}
+const blank = (s, n = 24) => s || '_'.repeat(n);
+
+async function buildAgreement(v) {
+  const { PDFDocument, StandardFonts, rgb } = PDFLib, doc = await PDFDocument.create();
+  const F = await doc.embedFont(StandardFonts.TimesRoman), B = await doc.embedFont(StandardFonts.TimesRomanBold);
+  const W = 595.28, H = 841.89, M = 64, CW = W - 2 * M, ink = rgb(0, 0, 0);
+  doc.setTitle('Rent Agreement');
+  let page = doc.addPage([W, H]), y = H - 60;
+  const need = h => { if (y - h < 56) { page = doc.addPage([W, H]); y = H - 60; } };
+  const para = (text, o = {}) => {
+    const size = o.size || 11.5, font = o.font || F, lh = size * 1.5, ind = o.indent || 0;
+    for (const l of wrapLines(font, text, size, CW - ind)) {
+      need(lh);
+      if (l) page.drawText(l, { x: o.center ? (W - font.widthOfTextAtSize(l, size)) / 2 : M + ind, y: y - size, size, font, color: ink });
+      y -= lh;
+    }
+    y -= (o.gap == null ? 6 : o.gap);
+  };
+  const start = new Date(v.start + 'T00:00:00'), end = addMonths(start, v.months); end.setDate(end.getDate() - 1);
+  const agr = new Date(v.date + 'T00:00:00'), rent = num(v.rent), dep = num(v.dep);
+  const ord = d => d + (['th', 'st', 'nd', 'rd'][(d % 100 > 10 && d % 100 < 14) ? 0 : (d % 10 < 4 ? d % 10 : 0)]);
+  const commercial = v.ptype === 'Commercial';
+
+  para('RENT AGREEMENT', { font: B, size: 20, center: true, gap: 2 });
+  para(commercial ? '(Commercial Premises)' : '(Residential Premises)', { size: 11, center: true, gap: 14 });
+  para('This Rent Agreement is made and executed at ' + blank(v.city, 20) + ' on this ' + dstr(agr) + ' between:', { gap: 8 });
+  para(blank(v.lName, 28) + ', residing at ' + blank(v.lAddr, 40) + (v.lId ? ' (ID: ' + v.lId + ')' : '') + ', hereinafter called the "LANDLORD" (which expression shall, unless repugnant to the context, include his/her heirs, legal representatives, successors and assigns) of the ONE PART.', { gap: 8 });
+  para('AND', { font: B, center: true, gap: 8 });
+  para(blank(v.tName, 28) + ', residing at ' + blank(v.tAddr, 40) + (v.tId ? ' (ID: ' + v.tId + ')' : '') + ', hereinafter called the "TENANT" (which expression shall, unless repugnant to the context, include his/her heirs, legal representatives, successors and assigns) of the OTHER PART.', { gap: 8 });
+  para('WHEREAS the Landlord is the lawful owner of the property situated at ' + blank(v.prop, 50) + ' (the "Premises"), and the Tenant has approached the Landlord to take the Premises on rent, and the Landlord has agreed to let it out on the following terms and conditions:', { gap: 10 });
+  para('NOW THIS AGREEMENT WITNESSETH AS FOLLOWS:', { font: B, gap: 10 });
+
+  const maintTxt = { incl: 'Society and maintenance charges are included in the monthly rent.', tenant: 'Society and maintenance charges, if any, shall be paid by the Tenant separately, in addition to the rent.', landlord: 'Society and maintenance charges, if any, shall be paid by the Landlord.' }[v.maint];
+  const stampTxt = { tenant: 'the Tenant', landlord: 'the Landlord', equal: 'the Landlord and the Tenant in equal shares' }[v.stampBy];
+  const clauses = [
+    ['TERM', 'This agreement is for a period of ' + v.months + ' months, commencing from ' + dstr(start) + ' and ending on ' + dstr(end) + '. It may be renewed for a further period on terms agreed in writing by both parties' + (v.inc > 0 ? ', with the monthly rent increasing by ' + v.inc + '% over the last rent paid' : '') + '.'],
+    ['RENT', 'The Tenant shall pay a monthly rent of ' + rsw(rent) + ', in advance, on or before the ' + ord(v.due) + ' day of every English calendar month, by ' + v.mode + '. ' + maintTxt],
+    ['SECURITY DEPOSIT', 'The Tenant has paid ' + rsw(dep) + ' to the Landlord as an interest-free, refundable security deposit, the receipt of which the Landlord acknowledges. The deposit shall be refunded when the Tenant vacates and hands over peaceful possession, after deducting any unpaid dues and the cost of damage beyond normal wear and tear. The Tenant shall not adjust the deposit against rent.'],
+    ['UTILITIES', 'The Tenant shall pay all electricity, water, gas, internet and similar charges for the period of occupation as per actual consumption, and shall clear all such dues before vacating.'],
+    ['USE OF PREMISES', 'The Premises shall be used only for ' + (commercial ? 'lawful commercial purposes' : 'residential purposes') + '. The Tenant shall not sub-let, assign or part with possession of the Premises or any part of it to anyone.'],
+    ['MAINTENANCE AND ALTERATIONS', 'The Tenant shall keep the Premises in good and clean condition and shall bear the cost of day-to-day minor repairs such as fuses, bulbs, taps and switches. Major and structural repairs shall be done by the Landlord. The Tenant shall not make any structural change or alteration without the prior written consent of the Landlord.' + (v.fix ? ' The Premises are let with the following fixtures and fittings: ' + v.fix + '.' : '')],
+    ['INSPECTION', 'The Landlord or an authorised representative may inspect the Premises at reasonable hours after giving prior notice to the Tenant.'],
+    v.lock > 0 ? ['LOCK-IN PERIOD', 'There shall be a lock-in period of ' + v.lock + ' month(s) from the commencement date, during which neither party may terminate this agreement. If a party terminates during the lock-in period, that party shall pay the other the rent for the balance of the lock-in period.'] : null,
+    ['TERMINATION AND NOTICE', 'After the lock-in period, either party may terminate this agreement by giving ' + v.notice + ' month(s) written notice to the other. If the Tenant leaves without giving the required notice, the Landlord may recover rent for the notice period from the security deposit.'],
+    ['DEFAULT', 'If the Tenant fails to pay the rent for two consecutive months or breaches any term of this agreement, the Landlord may terminate the agreement after giving written notice and take back possession of the Premises.'],
+    ['CONDUCT', 'The Tenant shall not carry on any illegal or immoral activity at the Premises, shall not cause nuisance or annoyance to neighbours, and shall not store any hazardous, explosive or prohibited material in the Premises.'],
+    ['POLICE VERIFICATION', 'The Tenant shall provide valid identity and address documents and shall co-operate in the police verification and any other formalities required by the law of the place.'],
+    ['HANDING OVER', 'On expiry or earlier termination of this agreement, the Tenant shall hand over peaceful and vacant possession of the Premises with all fixtures and fittings in the same condition as received, normal wear and tear excepted.'],
+    ['STAMP DUTY', 'The stamp duty and registration charges, if any, on this agreement shall be borne by ' + stampTxt + '.'],
+    ['AMENDMENTS', 'This agreement is the entire understanding between the parties. Any change or addition shall be valid only if it is made in writing and signed by both parties.'],
+    ['JURISDICTION', 'This agreement is governed by the laws of India, and any dispute arising from it shall be subject to the jurisdiction of the courts at ' + blank(v.city.split(',')[0].trim(), 16) + '.']
+  ].filter(Boolean);
+  const extra = v.extra ? v.extra.split('\n').map(cleanTxt).filter(Boolean) : [];
+  if (extra.length) clauses.splice(clauses.length - 1, 0, ['ADDITIONAL TERMS', extra.map((e, i) => (i + 1) + ') ' + e).join('\n')]);
+  clauses.forEach(([title, body], i) => { need(64); para((i + 1) + '. ' + title, { font: B, gap: 1 }); para(body, { gap: 8 }); });
+
+  need(230); y -= 6;
+  para('IN WITNESS WHEREOF the Landlord and the Tenant have signed this agreement on the date and at the place first written above, in the presence of the witnesses.', { gap: 6 });
+  y -= 34;
+  const colW = 200, xr = W - M - colW;
+  page.drawLine({ start: { x: M, y }, end: { x: M + colW, y }, thickness: 0.8, color: ink });
+  page.drawLine({ start: { x: xr, y }, end: { x: xr + colW, y }, thickness: 0.8, color: ink });
+  const tx = (s, x, yy, f, sz) => { s = cleanTxt(s); if (s) page.drawText(s, { x, y: yy, size: sz, font: f, color: ink }); };
+  tx('LANDLORD', M, y - 15, B, 11); tx('TENANT', xr, y - 15, B, 11);
+  tx(v.lName, M, y - 29, F, 11); tx(v.tName, xr, y - 29, F, 11);
+  y -= 70;
+  tx('WITNESSES:', M, y, B, 11); y -= 36;
+  page.drawLine({ start: { x: M, y }, end: { x: M + colW, y }, thickness: 0.8, color: ink });
+  page.drawLine({ start: { x: xr, y }, end: { x: xr + colW, y }, thickness: 0.8, color: ink });
+  tx('1. ' + v.w1, M, y - 14, F, 11); tx('2. ' + v.w2, xr, y - 14, F, 11);
+
+  const pgs = doc.getPages();
+  pgs.forEach((p, i) => { const t = 'Page ' + (i + 1) + ' of ' + pgs.length; p.drawText(t, { x: (W - F.widthOfTextAtSize(t, 9)) / 2, y: 28, size: 9, font: F, color: rgb(.4, .4, .4) }); });
+  return await doc.save();
+}
+
+async function buildReceipts(v) {
+  const { PDFDocument, StandardFonts, rgb } = PDFLib, doc = await PDFDocument.create();
+  const H1 = await doc.embedFont(StandardFonts.Helvetica), HB = await doc.embedFont(StandardFonts.HelveticaBold), TB = await doc.embedFont(StandardFonts.TimesRomanBold);
+  doc.setTitle('Rent Receipts');
+  const W = 595.28, H = 841.89, amt = num(v.amount);
+  const navy = rgb(.12, .1, .3), grey = rgb(.4, .4, .45), pur = rgb(.427, .157, .851), white = rgb(1, 1, 1), black = rgb(0, 0, 0);
+  const list = []; let [fy, fm] = v.from.split('-').map(Number); const [ty, tm] = (v.to || v.from).split('-').map(Number);
+  while (fy * 12 + fm <= ty * 12 + tm) { list.push({ y: fy, m: fm - 1 }); fm++; if (fm > 12) { fm = 1; fy++; } }
+  const recs = list.map((e, i) => {
+    const last = new Date(e.y, e.m + 1, 0).getDate(), d = new Date(e.y, e.m, Math.min(Math.max(1, num(v.day) || 1), last));
+    const month = MONTHS[e.m] + ' ' + e.y;
+    return { no: (v.prefix || '') + String(i + 1).padStart(3, '0'), date: dstr(d), month,
+      sentence: 'Received with thanks from ' + v.tenant + ' a sum of ' + rsw(amt) + ' towards the monthly rent of the property at ' + v.prop + ' for the month of ' + month + ', paid by ' + v.mode + (v.ref ? ' (Ref. ' + v.ref + ')' : '') + '.' };
+  });
+  const T = (pg, s, x, y, size, font, color = black) => { s = cleanTxt(s); if (s) pg.drawText(s, { x, y, size, font, color }); };
+  const TR = (pg, s, xr, y, size, font, color) => T(pg, s, xr - font.widthOfTextAtSize(cleanTxt(s), size), y, size, font, color);
+  const P = (pg, s, x, y, size, font, maxW, lh, color) => { for (const l of wrapLines(font, s, size, maxW)) { T(pg, l, x, y, size, font, color); y -= lh; } return y; };
+  const stampBox = (pg, x, y, w, h) => { pg.drawRectangle({ x, y, width: w, height: h, borderColor: grey, borderWidth: 0.8, borderDashArray: [3, 2] }); T(pg, 'Revenue', x + w / 2 - H1.widthOfTextAtSize('Revenue', 7) / 2, y + h / 2 + 2, 7, H1, grey); T(pg, 'Stamp', x + w / 2 - H1.widthOfTextAtSize('Stamp', 7) / 2, y + h / 2 - 7, 7, H1, grey); };
+  const rows = r => { const a = [['Tenant', v.tenant], ['Landlord', v.landlord]]; if (v.pan) a.push(['Landlord PAN', v.pan]); if (v.lAddr) a.push(['Landlord address', v.lAddr]); a.push(['Property', v.prop], ['Rent for', r.month], ['Payment mode', v.mode + (v.ref ? ' - ' + v.ref : '')]); return a; };
+
+  const classic = (pg, r) => {
+    const x0 = 48, x1 = W - 48, top = H - 56, bot = top - 530, ip = x0 + 26, iw = x1 - x0 - 52;
+    pg.drawRectangle({ x: x0, y: bot, width: x1 - x0, height: top - bot, borderColor: navy, borderWidth: 2.2 });
+    pg.drawRectangle({ x: x0 + 6, y: bot + 6, width: x1 - x0 - 12, height: top - bot - 12, borderColor: navy, borderWidth: 0.6 });
+    let y = top - 54; const t = 'RENT RECEIPT'; T(pg, t, (W - TB.widthOfTextAtSize(t, 26)) / 2, y, 26, TB, navy);
+    y -= 14; pg.drawLine({ start: { x: ip, y }, end: { x: x1 - 26, y }, thickness: 0.8, color: navy });
+    y -= 26; T(pg, 'Receipt No.: ' + r.no, ip, y, 11, HB); TR(pg, 'Date: ' + r.date, x1 - 26, y, 11, HB);
+    y -= 30; y = P(pg, r.sentence, ip, y, 12, H1, iw, 19) - 8;
+    for (const [k, val] of rows(r)) { T(pg, k + ':', ip, y, 10.5, HB, grey); y = P(pg, val, ip + 112, y, 10.5, H1, iw - 112, 15) - 5; }
+    y -= 10; pg.drawRectangle({ x: ip, y: y - 34, width: 210, height: 40, borderColor: navy, borderWidth: 1.2 }); T(pg, rs(amt), ip + 14, y - 21, 17, HB, navy);
+    const sy = bot + 72; pg.drawLine({ start: { x: x1 - 212, y: sy }, end: { x: x1 - 26, y: sy }, thickness: 0.8, color: black });
+    T(pg, 'Signature of Landlord', x1 - 212, sy - 13, 9, H1, grey); T(pg, v.landlord, x1 - 212, sy - 27, 10, HB);
+    if (v.stamp) stampBox(pg, ip, sy - 34, 58, 66);
+  };
+  const modern = (pg, r) => {
+    const x0 = 48, x1 = W - 48, top = H - 48;
+    pg.drawRectangle({ x: x0, y: top - 76, width: x1 - x0, height: 76, color: pur });
+    T(pg, 'RENT RECEIPT', x0 + 24, top - 46, 24, HB, white); TR(pg, 'No. ' + r.no, x1 - 24, top - 34, 11, HB, white); TR(pg, r.date, x1 - 24, top - 52, 11, H1, white);
+    let y = top - 112;
+    pg.drawRectangle({ x: x0, y: y - 54, width: x1 - x0, height: 64, color: rgb(.93, .91, 1) });
+    T(pg, 'AMOUNT RECEIVED', x0 + 24, y - 8, 9, HB, pur); T(pg, rs(amt), x0 + 24, y - 40, 24, HB, navy); TR(pg, 'For ' + r.month, x1 - 24, y - 32, 14, HB, navy);
+    y -= 92;
+    for (const [k, val] of rows(r)) { T(pg, k.toUpperCase(), x0 + 24, y, 8.5, HB, pur); y = P(pg, val, x0 + 150, y, 11, H1, x1 - x0 - 174, 15) - 8; }
+    y -= 6; pg.drawLine({ start: { x: x0, y }, end: { x: x1, y }, thickness: 0.6, color: rgb(.8, .78, .9) });
+    y -= 20; y = P(pg, r.sentence, x0 + 24, y, 10.5, H1, x1 - x0 - 48, 16, grey) - 6;
+    const sy = y - 52; pg.drawLine({ start: { x: x1 - 212, y: sy }, end: { x: x1 - 24, y: sy }, thickness: 0.8, color: black });
+    T(pg, 'Signature of Landlord', x1 - 212, sy - 13, 9, H1, grey); T(pg, v.landlord, x1 - 212, sy - 27, 10, HB);
+    if (v.stamp) stampBox(pg, x0 + 24, sy - 34, 58, 66);
+  };
+  const compact = (pg, r, s) => {
+    const sh = (H - 60) / 3, top = H - 30 - s * sh, x0 = 40, x1 = W - 40, h = sh - 16, bot = top - h, ip = x0 + 16;
+    pg.drawRectangle({ x: x0, y: bot, width: x1 - x0, height: h, borderColor: navy, borderWidth: 1, borderDashArray: [5, 3] });
+    let y = top - 26; T(pg, 'RENT RECEIPT', ip, y, 13, HB, navy); TR(pg, r.no + '  |  ' + r.date, x1 - 16, y, 9, HB, grey);
+    y -= 10; pg.drawLine({ start: { x: ip, y }, end: { x: x1 - 16, y }, thickness: 0.6, color: navy });
+    y -= 17; y = P(pg, r.sentence, ip, y, 10, H1, x1 - x0 - 32, 14) - 4;
+    T(pg, 'Amount: ' + rs(amt), ip, y, 12, HB, navy);
+    if (v.pan) T(pg, 'Landlord PAN: ' + v.pan, ip, bot + 14, 8.5, H1, grey);
+    const sy = bot + 40; pg.drawLine({ start: { x: x1 - 190, y: sy }, end: { x: x1 - 16, y: sy }, thickness: 0.7, color: black });
+    T(pg, 'Signature of Landlord - ' + v.landlord, x1 - 190, sy - 11, 8.5, H1, grey);
+    if (v.stamp) stampBox(pg, x0 + 16 + 230, bot + 10, 44, 50);
+  };
+  if (v.style === 'compact') {
+    for (let i = 0; i < recs.length; i += 3) { const pg = doc.addPage([W, H]); recs.slice(i, i + 3).forEach((r, k) => compact(pg, r, k)); }
+  } else recs.forEach(r => (v.style === 'modern' ? modern : classic)(doc.addPage([W, H]), r));
+  return await doc.save();
+}
+
+function rentOpen(modalId, ids, key) {
+  formLoad(ids, key);
+  if (ids === RA_IDS) { if (!$('ra_date').value) $('ra_date').value = todayIso(); if (!$('ra_start').value) $('ra_start').value = todayIso(); }
+  else { const m = todayIso().slice(0, 7); if (!$('rr_from').value) $('rr_from').value = m; if (!$('rr_to').value) $('rr_to').value = $('rr_from').value; }
+  show(modalId, true);
+}
+function openRentAgreement() { rentOpen('raModal', RA_IDS, 'pep_rent_agreement'); }
+function openRentReceipt() { rentOpen('rrModal', RR_IDS, 'pep_rent_receipt'); }
+function needStr(v, pairs) { for (const [k, label] of pairs) if (!v[k]) throw new Error('Please fill in: ' + label); }
+async function rentCreate(kind, download) {
+  try {
+    let v, bytes, name;
+    if (kind === 'ra') {
+      v = readForm(RA_IDS); needStr(v, [['city', 'City / State'], ['date', 'Agreement date'], ['start', 'Rent start date'], ['lName', 'Landlord name'], ['tName', 'Tenant name'], ['prop', 'Property address'], ['rent', 'Monthly rent']]);
+      assertLatin(v); v.months = Math.max(1, Math.round(num(v.months)) || 11); v.lock = Math.max(0, Math.round(num(v.lock))); v.notice = Math.max(0, Math.round(num(v.notice)));
+      v.inc = Math.max(0, num(v.inc)); v.due = Math.min(28, Math.max(1, Math.round(num(v.due)) || 5));
+      if (num(v.rent) <= 0) throw new Error('Please enter the monthly rent.');
+      if (v.lock > v.months) throw new Error('The lock-in period cannot be longer than the agreement.');
+      loading(true, 'Creating agreement…'); bytes = await buildAgreement(v); name = 'rent-agreement'; formSave(RA_IDS, 'pep_rent_agreement');
+    } else {
+      v = readForm(RR_IDS); needStr(v, [['tenant', 'Tenant name'], ['landlord', 'Landlord name'], ['prop', 'Property address'], ['amount', 'Monthly rent'], ['from', 'From month']]);
+      assertLatin(v); if (num(v.amount) <= 0) throw new Error('Please enter the monthly rent.');
+      const [a, b] = v.from.split('-').map(Number), [c, d] = (v.to || v.from).split('-').map(Number), n = (c * 12 + d) - (a * 12 + b) + 1;
+      if (n < 1) throw new Error('"To month" must be the same as or after "From month".');
+      if (n > 36) throw new Error('Please choose 36 months or fewer at a time.');
+      loading(true, 'Creating ' + n + ' receipt(s)…'); bytes = await buildReceipts(v); name = 'rent-receipts'; formSave(RR_IDS, 'pep_rent_receipt');
+    }
+    loading(false);
+    if (download) { downloadBlob(pdfBlob(bytes), name + '.pdf'); toast('PDF downloaded.'); return; }
+    if (pdfDoc && hasChanges() && !confirm('Opening the new document replaces the PDF you are editing. Unsaved changes will be lost. Continue?')) return;
+    show('raModal', false); show('rrModal', false);
+    await openPdfBytes(bytes, name);
+    toast('Ready. Click any line of text to edit it.');
+  } catch (err) { console.error(err); loading(false); alert(err.message); }
+}
+$('btnRA').addEventListener('click', openRentAgreement);
+$('btnRR').addEventListener('click', openRentReceipt);
+$('raClose').addEventListener('click', () => show('raModal', false));
+$('rrClose').addEventListener('click', () => show('rrModal', false));
+$('raGo').addEventListener('click', () => rentCreate('ra', false));
+$('raDl').addEventListener('click', () => rentCreate('ra', true));
+$('rrGo').addEventListener('click', () => rentCreate('rr', false));
+$('rrDl').addEventListener('click', () => rentCreate('rr', true));
+
+
+/* ---------- Image / signature resizer and PDF compressor ---------- */
+const fmtSize = n => n >= 1048576 ? (n / 1048576).toFixed(2) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+const canvasBlob = (c, mime, q) => new Promise(r => c.toBlob(r, mime, q));
+const RZ_PRESETS = {
+  sig1: { unit: 'px', w: 140, h: 60, fit: 'pad', fmt: 'jpeg', kb: 20 },
+  sig2: { unit: 'px', w: 200, h: 80, fit: 'pad', fmt: 'jpeg', kb: 30 },
+  pass: { unit: 'px', w: 413, h: 531, fit: 'crop', fmt: 'jpeg', kb: 50 },
+  photo: { unit: 'px', w: 200, h: 230, fit: 'crop', fmt: 'jpeg', kb: 50 },
+  web: { unit: 'px', w: 1280, h: 1280, fit: 'keep', fmt: 'jpeg', kb: 300 }
+};
+let rzImg = null, rzOrig = 0, rzName = 'image', rzOut = null;
+
+// lower the JPEG/WebP quality until the file fits; shrink the picture too only when allowed
+async function encodeTarget(canvas, mime, maxBytes, allowShrink) {
+  let c = canvas, scale = 1;
+  for (let round = 0; round < 14; round++) {
+    const top = await canvasBlob(c, mime, 0.95);
+    if (top.size <= maxBytes) return { blob: top, canvas: c, met: true };
+    const low = await canvasBlob(c, mime, 0.05);
+    if (low.size <= maxBytes) {
+      let lo = 0.05, hi = 0.95, best = low;
+      for (let i = 0; i < 7; i++) { const mid = (lo + hi) / 2, t = await canvasBlob(c, mime, mid); if (t.size <= maxBytes) { best = t; lo = mid; } else hi = mid; }
+      return { blob: best, canvas: c, met: true };
+    }
+    scale *= 0.85;
+    if (!allowShrink || scale < 0.1) return { blob: low, canvas: c, met: false };
+    const n = document.createElement('canvas'); n.width = Math.max(1, Math.round(canvas.width * scale)); n.height = Math.max(1, Math.round(canvas.height * scale));
+    const nx = n.getContext('2d'); nx.imageSmoothingQuality = 'high'; nx.drawImage(canvas, 0, 0, n.width, n.height); c = n;
+  }
+  return { blob: await canvasBlob(c, mime, 0.05), canvas: c, met: false };
+}
+function rzTargetDims() {
+  const ow = rzImg.naturalWidth, oh = rzImg.naturalHeight, unit = $('rzUnit').value, dpi = num($('rzDpi').value) || 300;
+  let w = num($('rzW').value), h = num($('rzH').value);
+  if (unit === '%') { const k = (w || 100) / 100; return { w: Math.max(1, Math.round(ow * k)), h: Math.max(1, Math.round(oh * k)) }; }
+  const f = { px: 1, cm: dpi / 2.54, mm: dpi / 25.4, inch: dpi }[unit];
+  w = Math.round(w * f); h = Math.round(h * f);
+  if (!w && !h) return { w: ow, h: oh };
+  if (!w) w = Math.round(h * ow / oh); if (!h) h = Math.round(w * oh / ow);
+  return { w, h };
+}
+async function rzRun() {
+  if (!rzImg) return;
+  $('rzRun').disabled = true; $('rzMsg').textContent = 'Working…';
+  try {
+    const ow = rzImg.naturalWidth, oh = rzImg.naturalHeight, fit = $('rzFit').value;
+    let fmt = $('rzFmt').value; const kb = num($('rzTarget').value), transp = $('rzTransp').checked;
+    if (transp && fmt !== 'png') { fmt = 'png'; $('rzFmt').value = 'png'; }
+    if (kb > 0 && fmt === 'png') { fmt = 'jpeg'; $('rzFmt').value = 'jpeg'; toast('A size limit needs JPG or WebP, so the format was changed to JPG.'); if (transp) { $('rzTransp').checked = false; } }
+    const t = rzTargetDims();
+    if (t.w > 10000 || t.h > 10000) throw new Error('That size is too large. Please stay under 10000 px on each side.');
+    let cw = t.w, ch = t.h, dw = t.w, dh = t.h, dx = 0, dy = 0;
+    if (fit === 'keep') { const k = Math.min(t.w / ow, t.h / oh); cw = dw = Math.max(1, Math.round(ow * k)); ch = dh = Math.max(1, Math.round(oh * k)); }
+    else if (fit === 'pad' || fit === 'crop') {
+      const k = fit === 'pad' ? Math.min(t.w / ow, t.h / oh) : Math.max(t.w / ow, t.h / oh);
+      dw = Math.round(ow * k); dh = Math.round(oh * k); dx = Math.round((t.w - dw) / 2); dy = Math.round((t.h - dh) / 2);
+    }
+    const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    if (fmt !== 'png' || (!transp && fit === 'pad')) { x.fillStyle = '#fff'; x.fillRect(0, 0, cw, ch); }
+    x.imageSmoothingQuality = 'high'; x.drawImage(rzImg, dx, dy, dw, dh);
+    if (transp) {
+      const d = x.getImageData(0, 0, cw, ch), a = d.data;
+      for (let i = 0; i < a.length; i += 4) { const lum = (a[i] + a[i + 1] + a[i + 2]) / 3; if (lum > 215) a[i + 3] = 0; else if (lum > 150) a[i + 3] = Math.round(a[i + 3] * (215 - lum) / 65); }
+      x.putImageData(d, 0, 0);
+    }
+    const mime = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }[fmt];
+    let res;
+    if (kb > 0) res = await encodeTarget(c, mime, kb * 1024, fit === 'keep');
+    else res = { blob: await canvasBlob(c, mime, +$('rzQ').value / 100), canvas: c, met: true };
+    if (rzOut && rzOut.url) URL.revokeObjectURL(rzOut.url);
+    rzOut = { blob: res.blob, canvas: res.canvas, url: URL.createObjectURL(res.blob), ext: fmt === 'jpeg' ? 'jpg' : fmt };
+    $('rzPrev').src = rzOut.url; $('rzPrev').style.display = '';
+    $('rzOutInfo').textContent = 'Result: ' + res.canvas.width + ' x ' + res.canvas.height + ' px, ' + fmtSize(res.blob.size) + '  (original: ' + ow + ' x ' + oh + ' px, ' + fmtSize(rzOrig) + ')' +
+      (kb > 0 && !res.met ? '. The file is still above ' + kb + ' KB at the lowest quality. Try a smaller size, or "Keep proportions" so the picture can shrink.' : '') +
+      (kb > 0 && res.met && res.canvas.width !== cw ? '. The picture was also made smaller to fit the limit.' : '');
+    ['rzDl', 'rzPlace', 'rzSaveSig'].forEach(id => $(id).disabled = false);
+    $('rzMsg').textContent = '';
+  } catch (err) { console.error(err); $('rzMsg').textContent = ''; alert(err.message); }
+  $('rzRun').disabled = false;
+}
+function applyRzPreset(k) {
+  const p = RZ_PRESETS[k]; if (!p) return;
+  $('rzUnit').value = p.unit; $('rzW').value = p.w; $('rzH').value = p.h; $('rzFit').value = p.fit; $('rzFmt').value = p.fmt; $('rzTarget').value = p.kb; $('rzTransp').checked = false;
+}
+async function rzLoad(file) {
+  try {
+    rzImg = await loadImage(await readAsDataURL(file)); rzOrig = file.size; rzName = file.name.replace(/\.[^.]+$/, '') || 'image';
+    $('rzInfo').textContent = file.name + ': ' + rzImg.naturalWidth + ' x ' + rzImg.naturalHeight + ' px, ' + fmtSize(file.size);
+    $('rzRun').disabled = false; ['rzDl', 'rzPlace', 'rzSaveSig'].forEach(id => $(id).disabled = true); $('rzOutInfo').textContent = ''; $('rzPrev').style.display = 'none';
+    await rzRun();
+  } catch (err) { alert(err.message); }
+}
+function openResize(preset) {
+  if (preset) { $('rzPreset').value = preset; applyRzPreset(preset); }
+  show('rzModal', true);
+}
+$('rzPreset').addEventListener('change', () => applyRzPreset($('rzPreset').value));
+$('rzQ').addEventListener('input', () => { $('rzQv').textContent = $('rzQ').value; });
+$('rzFile').addEventListener('change', e => { if (e.target.files[0]) rzLoad(e.target.files[0]); e.target.value = ''; });
+document.addEventListener('paste', e => {
+  if (!$('rzModal').classList.contains('show')) return;
+  const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+  if (it) { e.preventDefault(); rzLoad(it.getAsFile()); }
+});
+$('rzRun').addEventListener('click', rzRun);
+$('rzClose').addEventListener('click', () => show('rzModal', false));
+$('rzDl').addEventListener('click', () => { if (rzOut) downloadBlob(rzOut.blob, rzName + '-resized.' + rzOut.ext); });
+$('rzPlace').addEventListener('click', () => {
+  if (!rzOut) return; const c = rzOut.canvas, url = c.toDataURL('image/png');
+  show('rzModal', false); placeImageData(url, c.width, c.height, Math.min(160, Math.max(60, c.width * 0.5)));
+});
+$('rzSaveSig').addEventListener('click', () => {
+  if (!rzOut) return; const c = rzOut.canvas, list = store.get('pep_sigs');
+  list.push({ id: Date.now(), dataUrl: c.toDataURL('image/png'), w: c.width, h: c.height });
+  if (store.set('pep_sigs', list)) toast('Saved to My signatures.');
+});
+
+/* ----- PDF compression ----- */
+let cpBytes = null, cpName = 'document', cpOut = null;
+const OPT_LADDER = [{ d: 2400, q: 0.8 }, { d: 1800, q: 0.7 }, { d: 1400, q: 0.6 }, { d: 1000, q: 0.5 }, { d: 700, q: 0.4 }];
+const RAS_LADDER = [{ s: 1.6, q: 0.75 }, { s: 1.3, q: 0.65 }, { s: 1.0, q: 0.55 }, { s: 0.8, q: 0.45 }, { s: 0.6, q: 0.4 }];
+function cpSetSource(bytes, name) {
+  cpBytes = bytes; cpName = name; cpOut = null;
+  $('cpInfo').textContent = name + '.pdf: ' + fmtSize(bytes.length);
+  $('cpRun').disabled = false; $('cpDl').disabled = true; $('cpEdit').disabled = true; $('cpOutInfo').textContent = ''; $('cpProg').textContent = '';
+}
+async function bitmapFrom(bytes) {
+  const blob = new Blob([bytes], { type: 'image/jpeg' });
+  try { return await createImageBitmap(blob, { imageOrientation: 'none' }); } catch (e) { return await createImageBitmap(blob); }
+}
+// re-encode the JPEG photos inside the PDF at a smaller size; text and vector graphics are untouched
+async function optimizeKeepText(bytes, L) {
+  const { PDFDocument, PDFName, PDFRawStream, PDFNumber, PDFArray } = PDFLib;
+  const doc = await PDFDocument.load(bytes.slice(0), { ignoreEncryption: true, updateMetadata: false });
+  const N = n => PDFName.of(n);
+  for (const [ref, obj] of doc.context.enumerateIndirectObjects()) {
+    try {
+      if (!(obj instanceof PDFRawStream)) continue;
+      const d = obj.dict;
+      if (String(d.get(N('Subtype'))) !== '/Image' || String(d.get(N('Filter'))) !== '/DCTDecode') continue;
+      if (d.has(N('ImageMask')) || d.has(N('Mask')) || d.has(N('Decode'))) continue;
+      const cs = d.get(N('ColorSpace'));
+      let ok = String(cs) === '/DeviceRGB' || String(cs) === '/DeviceGray';
+      if (!ok && cs instanceof PDFArray && String(cs.get(0)) === '/ICCBased') {
+        const prof = doc.context.lookup(cs.get(1)), n = prof && prof.dict && prof.dict.get(N('N'));
+        ok = n instanceof PDFNumber && (n.asNumber() === 3 || n.asNumber() === 1);
+      }
+      if (!ok) continue;
+      const w = d.get(N('Width')).asNumber(), h = d.get(N('Height')).asNumber();
+      if (w * h < 40000) continue;
+      const k = Math.min(1, L.d / Math.max(w, h)), nw = Math.max(1, Math.round(w * k)), nh = Math.max(1, Math.round(h * k));
+      const bmp = await bitmapFrom(obj.contents);
+      const c = document.createElement('canvas'); c.width = nw; c.height = nh;
+      const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, nw, nh); cx.imageSmoothingQuality = 'high'; cx.drawImage(bmp, 0, 0, nw, nh); if (bmp.close) bmp.close();
+      const blob = await canvasBlob(c, 'image/jpeg', L.q); c.width = c.height = 0;
+      if (!blob || blob.size >= obj.contents.length * 0.95) continue;
+      const nb = new Uint8Array(await blob.arrayBuffer());
+      const nd = doc.context.obj({ Type: 'XObject', Subtype: 'Image', Width: nw, Height: nh, ColorSpace: 'DeviceRGB', BitsPerComponent: 8, Filter: 'DCTDecode', Length: nb.length });
+      if (d.has(N('SMask'))) nd.set(N('SMask'), d.get(N('SMask')));
+      doc.context.assign(ref, PDFRawStream.of(nd, nb));
+    } catch (e) { console.warn('Skipped an image:', e); }
+  }
+  return await doc.save({ useObjectStreams: true });
+}
+async function rasterCompress(bytes, L, say) {
+  const src = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise, out = await PDFLib.PDFDocument.create();
+  for (let p = 1; p <= src.numPages; p++) {
+    say('Page ' + p + ' of ' + src.numPages + '…');
+    const page = await src.getPage(p), base = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: L.s });
+    const c = document.createElement('canvas'); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+    const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+    await page.render({ canvasContext: cx, viewport: vp }).promise;
+    const blob = await canvasBlob(c, 'image/jpeg', L.q); c.width = c.height = 0;
+    const im = await out.embedJpg(new Uint8Array(await blob.arrayBuffer()));
+    out.addPage([base.width, base.height]).drawImage(im, { x: 0, y: 0, width: base.width, height: base.height });
+  }
+  return await out.save({ useObjectStreams: true });
+}
+async function cpRun() {
+  if (!cpBytes) return;
+  const mode = document.querySelector('input[name=cpMode]:checked').value, ladder = mode === 'keep' ? OPT_LADDER : RAS_LADDER;
+  const start = +$('cpLevel').value, target = num($('cpTarget').value) * (+$('cpUnit').value);
+  $('cpRun').disabled = true; $('cpDl').disabled = true; $('cpEdit').disabled = true; $('cpOutInfo').textContent = '';
+  try {
+    let best = null;
+    for (let i = start; i < ladder.length; i++) {
+      const say = m => $('cpProg').textContent = (target ? 'Attempt ' + (i - start + 1) + ': ' : '') + m;
+      say('Working…');
+      const out = mode === 'keep' ? await optimizeKeepText(cpBytes, ladder[i]) : await rasterCompress(cpBytes, ladder[i], say);
+      if (!best || out.length < best.length) best = out;
+      if (!target || out.length <= target) break;
+    }
+    $('cpProg').textContent = '';
+    const o = cpBytes.length, n = best.length;
+    if (n >= o) {
+      $('cpOutInfo').textContent = 'This PDF could not be made smaller with these settings (' + fmtSize(o) + '). ' + (mode === 'keep' ? 'It probably has no JPEG photos to shrink. Try Maximum compression.' : 'It is already compact.');
+    } else {
+      cpOut = best; $('cpDl').disabled = false; $('cpEdit').disabled = false;
+      $('cpOutInfo').textContent = 'Done: ' + fmtSize(o) + ' to ' + fmtSize(n) + ' (' + Math.round((1 - n / o) * 100) + '% smaller).' + (target && n > target ? ' The target of ' + fmtSize(target) + ' was not reached at the lowest setting.' : '');
+    }
+  } catch (err) { console.error(err); $('cpProg').textContent = ''; alert('Could not compress this PDF: ' + err.message); }
+  $('cpRun').disabled = false;
+}
+function openCompress() { show('cpModal', true); }
+$('cpFile').addEventListener('change', async e => { const f = e.target.files[0]; if (f) cpSetSource(new Uint8Array(await f.arrayBuffer()), f.name.replace(/\.[^.]+$/, '')); e.target.value = ''; });
+$('cpCurrent').addEventListener('click', async () => {
+  if (!pdfDoc) { toast('No PDF is open. Use Choose PDF instead.'); return; }
+  loading(true, 'Preparing…'); try { cpSetSource(await buildEditedPdf(), baseName); } catch (err) { alert(err.message); } loading(false);
+});
+$('cpRun').addEventListener('click', cpRun);
+$('cpClose').addEventListener('click', () => show('cpModal', false));
+$('cpDl').addEventListener('click', () => { if (cpOut) downloadBlob(pdfBlob(cpOut), cpName + '-compressed.pdf'); });
+$('cpEdit').addEventListener('click', async () => {
+  if (!cpOut) return;
+  if (pdfDoc && hasChanges() && !confirm('Opening this replaces the PDF you are editing. Unsaved changes will be lost. Continue?')) return;
+  show('cpModal', false); await openPdfBytes(cpOut, cpName + '-compressed');
+});
+$('btnRz').addEventListener('click', () => openResize());
+$('btnCp').addEventListener('click', openCompress);
+
+
+/* ---------- Look and feel: icons, ribbon tabs, tool cards ---------- */
+const ICONS = {
+  edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>',
+  type: '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
+  pen: '<path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/>',
+  sign: '<path d="M3 16c3-7 5-10 6.5-8s-1.5 8 1 7 3-6 5-6 2 4 5.5 1"/><line x1="3" y1="21" x2="21" y2="21"/>',
+  camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  upload: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+  stamp: '<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+  layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+  scissors: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>',
+  grid: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',
+  highlight: '<path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>',
+  eraser: '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>',
+  palette: '<circle cx="13.5" cy="6.5" r=".6"/><circle cx="17.5" cy="10.5" r=".6"/><circle cx="8.5" cy="7.5" r=".6"/><circle cx="6.5" cy="12.5" r=".6"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  undo: '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
+  pin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  cash: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+  receipt: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
+  resize: '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
+  compress: '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>',
+  trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
+  lock: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  play: '<polygon points="5 3 19 12 5 21 5 3"/>'
+};
+const ic = (n, s = 16) => '<svg class="ico" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[n] || '') + '</svg>';
+const EMO = { '✏': 'edit', '✍': 'pen', '📷': 'camera', '🧾': 'receipt', '🖼': 'image', '🔖': 'stamp', '✒': 'sign', '📚': 'layers', '✂': 'scissors', '🗂': 'grid', '🖍': 'highlight', '🧽': 'eraser', '🎨': 'palette', '➕': 'plus', '↩': 'undo', '↶': 'undo', '📌': 'pin', '💾': 'save', '⬇': 'download', '🔍': 'search', '📋': 'copy', '🏠': 'home', '💵': 'cash', '📐': 'resize', '🗜': 'compress', '📄': 'file', '📉': 'compress', '🗑': 'trash', '⌨': 'type', '✐': 'edit', '⚙': 'play' };
+function iconify(root) {
+  root.querySelectorAll('[data-ic]').forEach(el => {
+    if (el.dataset.done) return; el.dataset.done = 1;
+    el.insertAdjacentHTML('afterbegin', ic(el.dataset.ic, +el.dataset.sz || 16));
+  });
+  const keys = Object.keys(EMO);
+  root.querySelectorAll('.btn, .tabs button, .box h2').forEach(el => {
+    if (el.dataset.done) return;
+    const tn = [...el.childNodes].find(n => n.nodeType === 3 && n.data.trim()); if (!tn) return;
+    const d = tn.data.replace(/️/g, '').replace(/^\s+/, ''), k = keys.find(x => d.startsWith(x)); if (!k) return;
+    el.dataset.done = 1; tn.data = d.slice(k.length).replace(/^\s+/, '');
+    const h = document.createElement('span'); h.innerHTML = ic(EMO[k], el.tagName === 'H2' ? 20 : 16);
+    if (el.tagName === 'H2') { h.className = 'htile'; el.insertBefore(h, el.firstChild); } else el.insertBefore(h.firstChild, tn);
+  });
+}
+iconify(document);
+$('dropIc').innerHTML = ic('upload', 34); $('searchIc').innerHTML = ic('search', 17);
+$('drop').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('homeFiles').click(); } });
+
+// close buttons, backdrop click and Esc for every window
+document.querySelectorAll('.modal').forEach(m => {
+  const b = document.createElement('button'); b.className = 'mx'; b.type = 'button'; b.title = 'Close'; b.setAttribute('aria-label', 'Close'); b.innerHTML = ic('x', 18);
+  b.addEventListener('click', () => m.classList.remove('show')); m.querySelector('.box').appendChild(b);
+  m.addEventListener('mousedown', e => { if (e.target === m) m.classList.remove('show'); });
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = [...document.querySelectorAll('.modal.show')].pop(); if (o) o.classList.remove('show'); } });
+
+// ribbon tabs
+const TIPS = {
+  text: 'Click any text on the page to change it. To write something new, press Add text and click where it should go.',
+  insert: 'Choose what to add, then click on the page to place it. Drag it to move; use the round handles to resize or rotate.',
+  mark: 'Choose Highlight or Erase, then drag over the page. Press Esc when you are done.',
+  pages: 'These tools include your edits so far. Merge joins files, Split cuts pages out, Reduce PDF size makes the file smaller.',
+  create: 'Make a rent agreement or receipts from a short form, or resize a signature or photo to the size a website asks for.'
+};
+function setRTab(k) {
+  document.querySelectorAll('.rtab').forEach(t => t.classList.toggle('active', t.dataset.tab === k));
+  document.querySelectorAll('.rpanel').forEach(p => p.classList.toggle('active', p.dataset.panel === k));
+  $('tip').textContent = TIPS[k];
+}
+document.querySelectorAll('.rtab').forEach(t => t.addEventListener('click', () => setRTab(t.dataset.tab)));
+setRTab('text');
+{ const _tool = setTool; setTool = function (t) { setRTab('mark'); _tool(t); }; }
+{ const _view = showEditor; showEditor = function (on) { document.body.classList.toggle('editing', on); _view(on); }; }
+['btnSign', 'btnStamp', 'btnOcr', 'btnBill'].forEach(id => $(id).addEventListener('click', () => setRTab('insert')));
+['btnMerge', 'btnSplit', 'btnOrg', 'btnCp'].forEach(id => $(id).addEventListener('click', () => setRTab('pages')));
+['btnRA', 'btnRR', 'btnRz'].forEach(id => $(id).addEventListener('click', () => setRTab('create')));
+
+// tool cards on the home page
+const TOOL_GROUPS = [
+  { name: 'Edit and write', color: 'violet', items: [
+    ['edit', 'Edit any text', 'Click on text and type. Fonts are matched automatically, with bold and italic.', () => needPdf(), true],
+    ['pen', 'Handwriting converter', 'Turn typed text into handwriting. 40+ styles and any ink colour.', () => openHw(), true],
+    ['camera', 'Screenshot to text', 'Read text from a screenshot in English or Hindi and place it on the PDF.', () => show('ocrModal', true)],
+    ['receipt', 'Bill to editable PDF', 'Turn a photo of a bill into a PDF whose text you can change.', () => openBill()],
+    ['highlight', 'Highlight and erase', 'Highlight important lines, or wipe out anything with one drag.', () => needPdf(() => setTool('hl')), true],
+    ['palette', 'Page colour', 'Tint pages cream, yellow, blue or any colour you like.', () => needPdf(() => show('bgModal', true)), true]] },
+  { name: 'Sign and stamp', color: 'pink', items: [
+    ['sign', 'Signature studio', 'Type your name in 30+ handwriting styles, draw it, or upload a photo.', () => openSign()],
+    ['stamp', 'Stamp maker', 'Round seals, rubber stamps and badges with your own text.', () => openStamp()]] },
+  { name: 'Organise pages', color: 'blue', items: [
+    ['layers', 'Merge and reorder', 'Combine many files. Drag pages into the order you want.', () => openMerge([], false)],
+    ['scissors', 'Split a PDF', 'Split by page range, every N pages, or one file per page.', () => needPdf(openSplit), true],
+    ['grid', 'Rotate and delete pages', 'Fix page direction or remove pages you do not need.', () => needPdf(openOrg), true]] },
+  { name: 'Make files smaller or resize', color: 'green', items: [
+    ['compress', 'Reduce PDF size', 'Shrink a big PDF for email or upload portals. Set a target size if you like.', () => openCompress()],
+    ['compress', 'Reduce image size', 'Squeeze a photo under a size you choose, such as 50 KB or 200 KB.', () => openResize('web')],
+    ['resize', 'Image resizer', 'Set any size in pixels, cm, mm or inches. Crop, pad or keep proportions.', () => openResize('custom')],
+    ['sign', 'Signature resizer', 'Make a signature exactly 140 x 60 px and under 20 KB, as many forms ask.', () => openResize('sig1')]] },
+  { name: 'Ready-made documents', color: 'amber', items: [
+    ['home', 'Rent agreement', 'Fill in a short form and get a complete, editable rent agreement.', () => openRentAgreement()],
+    ['cash', 'Rent receipts', 'Monthly receipts in three styles, for as many months as you need.', () => openRentReceipt()]] }
+];
+(function buildTools() {
+  const host = $('toolGroups');
+  TOOL_GROUPS.forEach(g => {
+    const sec = document.createElement('div'); sec.className = 'tgroup';
+    sec.innerHTML = '<h3></h3><div class="tgrid"></div>'; sec.querySelector('h3').textContent = g.name;
+    g.items.forEach(([icn, title, desc, fn, needs]) => {
+      const c = document.createElement('div'); c.className = 'fc ' + g.color; c.tabIndex = 0; c.setAttribute('role', 'button');
+      c.innerHTML = '<span class="ftile">' + ic(icn, 24) + '</span><div><h3></h3><p></p>' + (needs ? '<span class="tag">Needs a PDF</span>' : '') + '</div>';
+      c.querySelector('h3').textContent = title; c.querySelector('p').textContent = desc; c.dataset.q = (title + ' ' + desc + ' ' + g.name).toLowerCase();
+      c.addEventListener('click', fn); c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } });
+      sec.querySelector('.tgrid').appendChild(c);
+    });
+    host.appendChild(sec);
+  });
+  $('toolSearch').addEventListener('input', () => {
+    const q = $('toolSearch').value.trim().toLowerCase(); let any = false;
+    host.querySelectorAll('.tgroup').forEach(sec => {
+      let n = 0; sec.querySelectorAll('.fc').forEach(c => { const ok = !q || q.split(/\s+/).every(w => c.dataset.q.includes(w)); c.classList.toggle('hidden', !ok); if (ok) n++; });
+      sec.classList.toggle('hidden', !n); if (n) any = true;
+    });
+    $('noTools').classList.toggle('hidden', any);
+  });
+})();
+</script>
+</body>
+</html>
